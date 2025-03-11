@@ -1,10 +1,10 @@
 <?php
 
-use Illuminate\Support\Facades\Route; 
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ProductController; 
 
 Route::get('/', function () {
     return view('layouts.app', ['component' => 'home-page']);
 });
-Route::get('/products', function () {
-    return view('layouts.app', ['component' => 'product-details-page']);
-});
+
+Route::get('/product/{slug}', [ProductController::class, 'productDetails']);
