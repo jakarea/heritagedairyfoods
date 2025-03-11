@@ -1,3 +1,71 @@
+/* *******************************************
+Project Name: heritage dairy foods
+Project Version: 1.0.0
+Agency: GIOPIO
+Author: Jakarea parvez
+URL: https://giopio.com/
+Theme color: #F53838;  
+Theme Primary Font Family: "Inter", serif;
+******************************************** */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer utilities {
+
+    body {
+        @apply font-hind_siliguri;
+        overflow-x: hidden;
+    }
+
+    button,
+    a,
+    input {
+        @apply focus-visible:outline-none;
+    }
+
+}
+
+.anim {
+    @apply transition duration-500 ease-in-out;
+}
+
+.common-bttn{
+   @apply bg-second text-white text-sm font-semibold py-3 px-6 rounded-md anim hover:bg-third xl:text-xl inline-flex items-center gap-x-3
+}
+
+
+
+.hero-section .swiper-paginations{
+    position: relative!important;
+    left: auto!important;
+    bottom: auto!important;
+    z-index: 999!important;
+    text-align: start;
+}
+
+.hero-section .swiper-pagination-bullet{
+    width: 20px!important;
+    height: 12px!important;
+    border-radius: 25px!important;
+    background-color: transparent!important;
+    border: 2px solid #b11116 !important;
+    opacity: 1!important;
+}
+
+.hero-section .swiper-pagination-bullet.swiper-pagination-bullet-active{
+    background: #b11116!important;
+    width: 55px!important;
+}
+
+/* custom responsive css */
+@media (min-width: 320px) and (max-width: 640px) {}
+
+@media (min-width: 641px) and (max-width: 768px) {}
+
+@media (min-width: 769px) and (max-width: 1024px) {}
+
+@media (min-width: 1025px) and (max-width: 1290px) {}
+
+@media (min-width: 1291px) {}
