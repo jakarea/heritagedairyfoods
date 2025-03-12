@@ -225,10 +225,10 @@
         <img src="/images/pattern-bg-01.webp" alt="pattern bg" class="absolute top-0 left-0 w-full h-full -z-10">
         <div class="container">
             <div class="text-center">
-                <h2 class="text-second text-xl font-semibold xl:text-[34px] my-2 xl:mb-8 xl:mt-4">পরিশেষে</h2>
+                <h2 class="text-second text-xl font-semibold xl:text-[34px] my-2 xl:mb-8 xl:mt-4">{{ $product['conclusion']['title'] }}</h2>
                 <p
                     class="text-sm md:text-base xl:text-2xl xl:leading-[150%] font-normal text-third text-justify xl:text-center xl:mx-12">
-                    {{ $product['conclusion'] }}
+                    {{ $product['conclusion']['description'] }}
                 </p>
             </div>
         </div>

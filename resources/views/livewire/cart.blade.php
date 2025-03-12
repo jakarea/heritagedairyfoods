@@ -24,7 +24,7 @@
                                 id="cart-item-{{ $product['id'] }}" class="absolute left-2 top-2"
                                 wire:change="toggleCart({{ $product['id'] }}, $event.target.checked)"
                                 @checked($this->isProductInCart($product['id']))>
-                            <label for="cart-item-{{ $product['id'] }}">
+                            <label for="cart-item-{{ $product['id'] }}" class="cursor-pointer block">
                                 @if ($product['image'])
                                 <img src="{{ url($product['image']) }}" alt="cart" class="max-w-[60px]">
                                 @else
@@ -43,12 +43,57 @@
                                         সংখ্যা</label>
                                     <div class="border border-[#F2F2F2] flex items-center bg-[#EEEEEE]">
                                         <button type="button" wire:click="decrementQuantity({{ $product['id'] }})"
-                                            class="w-[30px] text-center h-full xl:w-[60px] xl:text-base">-</button>
+                                            wire:loading.attr="disabled"
+                                            wire:target="decrementQuantity({{ $product['id'] }})"
+                                            class="w-[30px] text-center h-full xl:w-[60px] xl:text-base relative inline-flex justify-center items-center">
+
+                                            <span wire:loading.remove
+                                                wire:target="decrementQuantity({{ $product['id'] }})">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                    stroke-width="1.5" stroke="currentColor" class="size-4">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14" />
+                                                </svg>
+
+                                            </span>
+                                            <span wire:loading wire:target="decrementQuantity({{ $product['id'] }})"
+                                                class="">
+                                                <svg class="animate-spin h-5 w-5 text-gray-500"
+                                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                        stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor"
+                                                        d="M4 12a8 8 0 018-8v8H4z"></path>
+                                                </svg>
+                                            </span>
+                                        </button>
+
                                         <input type="text" id="{{ $product['id'] }}" name="quantity"
                                             class="w-10 xl:w-[60px] h-[26px] xl:h-8 text-sm font-normal text-black xl:text-base text-center bg-white font-inter"
                                             value="{{ $this->getCartItemQuantity($product['id']) }}" readonly>
                                         <button type="button" wire:click="incrementQuantity({{ $product['id'] }})"
-                                            class="w-[30px] text-center xl:w-[60px]">+</button>
+                                            wire:loading.attr="disabled"
+                                            wire:target="incrementQuantity({{ $product['id'] }})"
+                                            class="w-[30px] text-center xl:w-[60px] xl:text-base relative inline-flex justify-center items-center">
+                                            <span wire:loading.remove
+                                                wire:target="incrementQuantity({{ $product['id'] }})">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                    stroke-width="1.5" stroke="currentColor" class="size-4">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="M12 4.5v15m7.5-7.5h-15" />
+                                                </svg>
+
+                                            </span>
+                                            <span wire:loading wire:target="incrementQuantity({{ $product['id'] }})"
+                                                class="">
+                                                <svg class="animate-spin h-5 w-5 text-gray-500"
+                                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                        stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor"
+                                                        d="M4 12a8 8 0 018-8v8H4z"></path>
+                                                </svg>
+                                            </span>
+                                        </button>
                                     </div>
                                 </div>
                                 <div>
@@ -65,7 +110,8 @@
             </div>
 
             <!-- order details -->
-            <form wire:submit.prevent="submit" method="POST" class="w-full mt-10 grid grid-cols-1 gap-y-6 xl:mt-20 xl:grid-cols-2 xl:gap-x-8">
+            <form wire:submit.prevent="submit" method="POST"
+                class="w-full mt-10 grid grid-cols-1 gap-y-6 xl:mt-20 xl:grid-cols-2 xl:gap-x-8">
                 @csrf
                 <div class="w-full">
                     <h5 class="text-xl xl:text-[28px] font-semibold text-black">অর্ডার সংক্রান্ত তথ্য</h5>
@@ -73,15 +119,15 @@
                         <div class="w-full">
                             <label for="" class="block w-full text-sm xl:text-lg font-normal text-black mb-2.5">আপনার
                                 নাম লিখুন <span class="text-[#F92F2F]">*</span> </label>
-                                <input type="text" wire:model="name" placeholder="আপনার নাম লিখুন"
+                            <input type="text" wire:model="name" placeholder="আপনার নাম লিখুন"
                                 class="block w-full h-12 xl:h-[57px] border @error('name') border-red-500 @else border-[#EAEAEA] @enderror rounded-[4px] px-4 text-base xl:text-xl font-normal text-black placeholder:text-[#A6A6A6]">
                             @error('name') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                         </div>
-                        
+
                         <div class="w-full">
                             <label for="" class="block w-full text-sm xl:text-lg font-normal text-black mb-2.5">আপনার
                                 ঠিকানা*</label>
-                                <input type="text" wire:model="address" placeholder="আপনার ঠিকানা"
+                            <input type="text" wire:model="address" placeholder="আপনার ঠিকানা"
                                 class="block w-full h-12 xl:h-[57px] border @error('address') border-red-500 @else border-[#EAEAEA] @enderror rounded-[4px] px-4 text-base xl:text-xl font-normal text-black placeholder:text-[#A6A6A6]">
                             @error('address') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                         </div>
@@ -89,23 +135,45 @@
                             <label for="" class="block w-full text-sm xl:text-lg font-normal text-black mb-2.5">আপনার
                                 ফোন
                                 নম্বর*</label>
-                                <input type="text" wire:model="phone_number" placeholder="আপনার ফোন নম্বর"
+                            <input type="number" wire:model="phone_number" placeholder="আপনার ফোন নম্বর"
                                 class="block w-full h-12 xl:h-[57px] border @error('phone_number') border-red-500 @else border-[#EAEAEA] @enderror rounded-[4px] px-4 text-base xl:text-xl font-normal text-black placeholder:text-[#A6A6A6]">
                             @error('phone_number') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                         </div>
                         <div class="w-full">
-                            <label for="delivery_option" class="block w-full text-sm xl:text-lg font-normal text-black mb-2.5">আমরা কোথায় পৌঁছে দেব?</label>
+                            <label for="delivery_option"
+                                class="block w-full text-sm xl:text-lg font-normal text-black mb-2.5">আমরা কোথায় পৌঁছে
+                                দেব?</label>
                             <div class="flex items-center gap-x-4">
                                 <div class="flex gap-x-2">
-                                    <input type="radio" wire:model="inside_dhaka" name="shiping" id="inside_dhaka" wire:change="shipingType(60)" checked>
-                                    <label for="inside_dhaka" class="text-sm xl:text-lg font-normal text-black block">ঢাকার ভেতরে</label>
+                                    <input type="radio" wire:model="shiping_zone" name="shiping_zone" id="inside_dhaka"
+                                        value="inside_dhaka" wire:change="shipingType(60)">
+                                    <label for="inside_dhaka"
+                                        class="text-sm xl:text-lg font-normal text-black block cursor-pointer">ঢাকার
+                                        ভেতরে</label>
                                 </div>
                                 <div class="flex gap-x-2">
-                                    <input type="radio" wire:model="outside_dhaka" name="shiping" id="outside_dhaka" wire:change="shipingType(120)">
-                                    <label for="outside_dhaka" class="text-sm xl:text-lg font-normal text-black block">ঢাকার বাইরে</label>
+                                    <input type="radio" wire:model="shiping_zone" name="shiping_zone" id="outside_dhaka"
+                                        value="outside_dhaka" wire:change="shipingType(120)">
+                                    <label for="outside_dhaka"
+                                        class="text-sm xl:text-lg font-normal text-black block cursor-pointer">ঢাকার
+                                        বাইরে</label>
                                 </div>
                             </div>
+                            @error('shiping_zone') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                         </div>
+                    </div>
+
+                    <div class="mt-10">
+                        @if (session()->has('success'))
+                        <div class="bg-green-500 text-white p-4 rounded-md mb-4">
+                            {{ session('success') }}
+                        </div>
+                        @endif
+                        @if (session()->has('error'))
+                        <div class="bg-red-500 text-white p-4 rounded-md mb-4">
+                            {{ session('error') }}
+                        </div>
+                        @endif
                     </div>
                 </div>
                 <div class="w-full">
@@ -151,7 +219,8 @@
                                 </div>
                             </td>
                             <td class="py-2">
-                                <p class="text-base xl:text-lg font-normal"><span class="font-inter">{{ $item->price }}</span> ৳</p>
+                                <p class="text-base xl:text-lg font-normal"><span class="font-inter">{{ $item->price
+                                        }}</span> ৳</p>
                             </td>
                         </tr>
                         @endif
@@ -183,7 +252,8 @@
                                 <h5 class="text-base xl:text-lg font-normal">মোট</h5>
                             </td>
                             <td>
-                                <p class="text-base xl:text-lg font-normal"><span class="font-inter">{{ $totalPrice }}</span> ৳</p>
+                                <p class="text-base xl:text-lg font-normal"><span class="font-inter">{{ $totalPrice
+                                        }}</span> ৳</p>
                             </td>
                         </tr>
                         <tr>
@@ -191,7 +261,8 @@
                                 <h5 class="text-base xl:text-lg font-normal">শিপিং</h5>
                             </td>
                             <td class="pt-5 xl:pt-20">
-                                <p class="text-base xl:text-lg font-normal"><span class="font-inter">{{ $shipingValue }}</span> ৳</p>
+                                <p class="text-base xl:text-lg font-normal"><span class="font-inter">{{ $shipingValue
+                                        }}</span> ৳</p>
                             </td>
                         </tr>
                         <tr>
@@ -204,7 +275,8 @@
                                 <h5 class="text-base xl:text-lg font-normal">সর্বমোট</h5>
                             </td>
                             <td>
-                                <p class="text-base xl:text-lg font-bold"><span class="font-inter">{{ $totalPrice + $shipingValue }}</span> ৳</p>
+                                <p class="text-base xl:text-lg font-bold"><span class="font-inter">{{ $totalPrice +
+                                        $shipingValue }}</span> ৳</p>
                             </td>
                         </tr>
                     </table>
@@ -231,8 +303,13 @@
                     </div>
                     <div class="text-start mt-6">
                         <button type="submit"
-                            class="bg-second text-white text-sm font-semibold py-4 px-4 rounded-md anim hover:bg-third w-full block xl:text-4xl">অর্ডার
-                            করুন</button>
+                            class="bg-second text-white text-sm font-semibold py-4 px-4 rounded-md anim hover:bg-third w-full block xl:text-4xl"
+                            wire:loading.attr="disabled" wire:target="submit">
+
+                            <!-- Show 'Processing...' when submitting, else show 'অর্ডার করুন' -->
+                            <span wire:loading.remove>অর্ডার করুন</span>
+                            <span wire:loading>প্রক্রিয়াধীন...</span>
+                        </button>
                     </div>
                 </div>
             </form>
