@@ -12,29 +12,35 @@
                 <h3
                     class="text-xl xl:text-[28px] font-semibold text-black border-b border-third border-opacity-20 pb-2 mb-4 xl:pb-4 xl:mb-6">
                     পছন্দ করুন
-                </h3>
+                </h3> 
 
                 <div class="grid grid-cols-1 xl:grid-cols-2 xl:gap-x-[250px] gap-y-3">
-                    @foreach ($products as $product)
+                    @foreach ($products as $product) 
                     <!-- item -->
+                {{-- <pre>{{ print_r($isProductInCarts) }}</pre> --}}
+
                     <div
                         class="w-full border border-[#EAEAEA] p-3 xl:p-5 grid grid-cols-3 gap-x-3 xl:gap-x-5 items-center xl:flex anim hover:bg-[#F6F6F6] rounded-md">
-                        <div class="img relative xl:w-[130px] xl:h-[107px] flex justify-center items-center bg-white">
+                        <label for="cart-item-{{ $product['id'] }}"
+                            class="img cursor-pointer relative xl:w-[130px] xl:h-[107px] flex justify-center items-center bg-white">
                             <input type="checkbox" name="cart-item-{{ $product['id'] }}"
                                 id="cart-item-{{ $product['id'] }}" class="absolute left-2 top-2"
                                 wire:change="toggleCart({{ $product['id'] }}, $event.target.checked)"
-                                @checked($this->isProductInCart($product['id']))>
-                            <label for="cart-item-{{ $product['id'] }}" class="cursor-pointer block">
+                                @checked(in_array($product['id'], $isProductInCarts))>
+
+                            <div class="">
                                 @if ($product['image'])
                                 <img src="{{ url($product['image']) }}" alt="cart" class="max-w-[60px]">
                                 @else
                                 <img src="/images/products/chini-pata.webp" alt="cart" class="max-w-[60px]">
                                 @endif
-                            </label>
-
-                        </div>
+                            </div>
+                        </label>
+                      
                         <div class="txt col-span-2">
-                            <h4 class="text-base xl:text-xl font-medium text-black">{{ $product['name'] }}</h4>
+                            <label for="cart-item-{{ $product['id'] }}"
+                                class="text-base block cursor-pointer xl:text-xl font-medium text-black">{{
+                                $product['name'] }}</label>
 
                             <div class="flex items-center justify-start mt-2 gap-x-7 xl:gap-x-10">
                                 <div class="max-w-[50%]">
@@ -184,7 +190,7 @@
                             <td>
                                 <h5 class="text-base xl:text-lg font-semibold">পণ্য</h5>
                             </td>
-                            <td>
+                            <td class="text-end pr-5 xl:pr-10">
                                 <p class="text-base xl:text-lg font-normal">মোট</p>
                             </td>
                         </tr>
@@ -218,7 +224,7 @@
                                     </div>
                                 </div>
                             </td>
-                            <td class="py-2">
+                            <td class="py-2 text-end pr-5 xl:pr-10">
                                 <p class="text-base xl:text-lg font-normal"><span class="font-inter">{{ $item->price
                                         }}</span> ৳</p>
                             </td>
@@ -228,8 +234,7 @@
                         @else
                         <tr>
                             <td colspan="2">
-                                <p class="text-sm xl:text-base font-semibold text-red-500 text-center">কোন পণ্য নির্বাচন
-                                    করা হয়নি</p>
+                                <p class="text-sm xl:text-base font-semibold text-red-500 text-center">কার্টে কোন পণ্য নেই </p>
                             </td>
                         </tr>
                         @endif
@@ -251,7 +256,7 @@
                             <td>
                                 <h5 class="text-base xl:text-lg font-normal">মোট</h5>
                             </td>
-                            <td>
+                            <td class="text-end pr-5 xl:pr-10">
                                 <p class="text-base xl:text-lg font-normal"><span class="font-inter">{{ $totalPrice
                                         }}</span> ৳</p>
                             </td>
@@ -260,7 +265,7 @@
                             <td class="pt-5 xl:pt-20">
                                 <h5 class="text-base xl:text-lg font-normal">শিপিং</h5>
                             </td>
-                            <td class="pt-5 xl:pt-20">
+                            <td class="pt-5 xl:pt-20 text-end pr-5 xl:pr-10">
                                 <p class="text-base xl:text-lg font-normal"><span class="font-inter">{{ $shipingValue
                                         }}</span> ৳</p>
                             </td>
@@ -274,7 +279,7 @@
                             <td>
                                 <h5 class="text-base xl:text-lg font-normal">সর্বমোট</h5>
                             </td>
-                            <td>
+                            <td class="text-end pr-5 xl:pr-10">
                                 <p class="text-base xl:text-lg font-bold"><span class="font-inter">{{ $totalPrice +
                                         $shipingValue }}</span> ৳</p>
                             </td>

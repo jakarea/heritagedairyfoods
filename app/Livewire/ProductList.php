@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use Livewire\Component;
+use Illuminate\Support\Facades\DB;
 
 class ProductList extends Component
 {
@@ -24,6 +25,7 @@ class ProductList extends Component
         // Emit the event to Cart component
         $this->dispatch('addToCartEvent', $productId); 
     } 
+ 
 
     public function render()
     {

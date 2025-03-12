@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 class Cart extends Component
 {
@@ -15,6 +16,7 @@ class Cart extends Component
     public $products = [];
     public $cartItems = [];
     public $sessionId;
+    public $isProductInCarts = [];
 
     public $shipingValue = 0;
     public $name;
@@ -27,31 +29,24 @@ class Cart extends Component
     protected $rules = [
         'name' => 'required|string|max:255',
         'address' => 'required|string|max:255',
-        'phone_number' => 'required|regex:/^\+?\d{8,20}$/',
+        'phone_number' => 'required|regex:/^\+?\d{2,20}$/',
         'shiping_zone' => 'required|string',
     ];
 
     protected $messages = [
-        'name.required' => 'নাম অবশ্যই প্রদান করতে হবে।',
-        'name.string' => 'নাম একটি বৈধ স্ট্রিং হতে হবে।',
-        'name.max' => 'নামের দৈর্ঘ্য ২৫৫ অক্ষরের বেশি হতে পারে না।',
+        'name.required' => 'নাম লিখতে ভুলে গেছেন',
+        'name.string' => 'সঠিকভাবে শুধুই নাম লিখুন',
+        'name.max' => 'একটু ছোট নাম লিখুন',
 
-        'address.required' => 'ঠিকানা অবশ্যই প্রদান করতে হবে।',
-        'address.string' => 'ঠিকানা একটি বৈধ স্ট্রিং হতে হবে।',
-        'address.max' => 'ঠিকানার দৈর্ঘ্য ২৫৫ অক্ষরের বেশি হতে পারে না।',
+        'address.required' => 'ঠিকানা প্রদান করুন',
+        'address.string' => 'সঠিকভাবে ঠিকানা দিন',
+        'address.max' => 'ঠিকানা একটু ছোট করুন',
 
-        'phone_number.required' => 'ফোন নম্বর অবশ্যই প্রদান করতে হবে।',
-        'phone_number.regex' => 'ফোন নম্বরটি একটি বৈধ ফোন নম্বর হতে হবে (+এবং ৮-২০ অঙ্কের মধ্যে)।',
+        'phone_number.required' => 'ফোন নম্বর দিতে হবে',
+        'phone_number.regex' => 'ফোন নাম্বার সঠিক তো ?',
 
-        'shiping_zone.required' => 'শিপিং জোন অবশ্যই সিলেক্ট করতে হবে।',
+        'shiping_zone.required' => 'কোথায় ডেলিভেরি পেতে চান',
     ];
-
-    public function validateCartItems()
-    {
-        $this->validate([
-            'cartItems' => 'required|array|min:1',
-        ]);
-    }
 
     public function mount()
     {
@@ -59,6 +54,8 @@ class Cart extends Component
         $this->loadProducts();
         $this->getCartId();
         $this->updateCart();
+
+        // Log::debug('Data:', ['data' => $this->isProductInCarts]);
     }
 
     private function loadProducts()
@@ -89,9 +86,7 @@ class Cart extends Component
     }
 
     public function toggleCart($productId, $isChecked)
-    {
-        $cartId = $this->getCartId();
-
+    { 
         if ($isChecked) {
             // Add the product to the cart
             $this->addToCart($productId);
@@ -104,17 +99,16 @@ class Cart extends Component
         $this->updateCart();
     }
 
-    public function isProductInCart($productId)
+    public function isProductInCart()
     {
+        
         $cartId = $this->getCartId();
 
         // Check if the product exists in the cart
-        $cartItem = DB::table('cart_items')
-            ->where('cart_id', $cartId)
-            ->where('product_id', $productId)
-            ->first();
-
-        return $cartItem ? true : false;
+        $this->isProductInCarts  = DB::table('cart_items')
+        ->where('cart_id', $cartId)
+        ->pluck('product_id')
+        ->toArray(); 
     }
 
     public function addToCart($productId)
@@ -148,7 +142,7 @@ class Cart extends Component
         }
 
         $this->updateCart();
-        $this->isProductInCart($productId);
+        // $this->isProductInCart();
     }
 
     public function removeFromCart($productId)
@@ -160,7 +154,7 @@ class Cart extends Component
             ->delete();
 
         $this->updateCart();
-        $this->isProductInCart($productId);
+        // $this->isProductInCart();
     }
 
     private function getProductById($productId)
@@ -180,6 +174,9 @@ class Cart extends Component
         $this->cartItems = DB::table('cart_items')
             ->where('cart_id', $cartId)
             ->get();
+
+        $this->isProductInCart();
+
     }
 
     public function incrementQuantity($productId)
@@ -217,7 +214,7 @@ class Cart extends Component
 
         // Re-fetch cart to ensure the updated data is available
         $this->updateCart();
-        $this->isProductInCart($productId);
+        // $this->isProductInCart();
     }
 
     public function decrementQuantity($productId)
@@ -255,7 +252,7 @@ class Cart extends Component
 
         // Re-fetch cart to ensure the updated data is available
         $this->updateCart();
-        $this->isProductInCart($productId);
+        // $this->isProductInCart();
     }
 
     public function getCartItemQuantity($productId)
@@ -277,73 +274,99 @@ class Cart extends Component
 
     public function calculateTotalPrice()
     {
-        $cartId = $this->getCartId();
+        $cart = DB::table('carts')->where('session_id', $this->sessionId)->first();
 
         return (float) DB::table('cart_items')
-            ->where('cart_id', $cartId)
+            ->where('cart_id', $cart->id)
             ->sum('price');
     }
 
     public function submit()
     {
+        // Validate user input
         $validated = $this->validate();
+
+        if (!$validated) {
+            session()->flash('error', 'ভুল তথ্য');
+            return;
+        }
+
+        // Ensure there are cart items
+        $mainCart = DB::table('carts')->where('session_id', $this->sessionId)->first();
+        if (!$mainCart) {
+            session()->flash('error', 'কোন কার্ট পাওয়া যায়নি');
+            return;
+        }
+
+        $cartItems = DB::table('cart_items')->where('cart_id', $mainCart->id)->get();
+        if ($cartItems->isEmpty()) {
+            session()->flash('error', 'কোন পণ্য নির্বাচন করা হয়নি');
+            return;
+        }
+
+        // Calculate total price
         $this->total_price = $this->calculateTotalPrice();
 
-        if ($validated) {
-            try {
-                 
-                // Insert the order
-                $orderId = DB::table('orders')->insertGetId([  // Use insertGetId to get the order_id
-                    'customer_id' => $this->sessionId,
-                    'order_number' => Str::upper(Str::random(8)),
-                    'total_price' => (float)$this->total_price + (float)$this->shipingValue, // Ensure it's a float
-                    'shipping_cost' => (float)$this->shipingValue, // Ensure it's a float
-                    'shipping_zone' => $this->shiping_zone,
-                    'payment_method' => 'COD',
-                    'status' => 'pending',
+
+        try {
+            DB::beginTransaction();
+
+            // Insert the order
+            $orderNumber = Str::upper(Str::random(8));
+            $orderId = DB::table('orders')->insertGetId([
+                'customer_id' => $this->sessionId,
+                'order_number' => $orderNumber,
+                'total_price' => (float)$this->total_price + (float)$this->shipingValue,
+                'shipping_cost' => (float)$this->shipingValue,
+                'shipping_zone' => $this->shiping_zone,
+                'payment_method' => 'COD',
+                'status' => 'pending',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            // Insert order items
+            $orderItems = $cartItems->map(function ($cartItem) use ($orderId) {
+                return [
+                    'order_id' => $orderId,
+                    'product_id' => $cartItem->product_id,
+                    'variation_id' => null,
+                    'quantity' => $cartItem->quantity,
+                    'price' => $cartItem->price,
+                    'subtotal' => $cartItem->price,
+                    'discount' => 0,
                     'created_at' => now(),
                     'updated_at' => now(),
-                ]);
+                ];
+            })->toArray();
 
-                // Insert order items using cart items
-                $mainCart = DB::table('carts')->where('session_id', $this->sessionId)->first();
-                $cartItems = DB::table('cart_items')->where('cart_id', $mainCart->id)->get();
-
-                $orderItems = $cartItems->map(function ($cartItem) use ($orderId) {
-                    return [
-                        'order_id' => $orderId,
-                        'product_id' => $cartItem->product_id,
-                        'variation_id' => null,
-                        'quantity' => $cartItem->quantity,
-                        'price' => $cartItem->price, // assuming the price field in cart_items
-                        'subtotal' => $cartItem->price, // Subtotal calculation
-                        'discount' => 0, // Assuming there might be a discount field, default to 0 if null
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ];
-                });
-
-                // dd($orderItems);
-
-                // Insert all order items in bulk
-                DB::table('order_items')->insert($orderItems->toArray());
-
-                DB::table('cart_items')->where('cart_id', $mainCart->id)->delete();
-
-                $this->updateCart();
-
-                // Flash success message
-                session()->flash('success', 'Your order has been placed successfully!');
-
-                // Reset fields after successful order placement
-                $this->reset(['name', 'sessionId', 'address', 'phone_number', 'shiping_zone', 'total_price', 'shipingValue']);
-            } catch (\Exception $e) {
-                session()->flash('error', 'There was a problem placing your order! ' . $e->getMessage());
+            if (!empty($orderItems)) {
+                DB::table('order_items')->insert($orderItems);
             }
-        } else {
-            session()->flash('error', 'Incorrect Data');
+
+            // Clear the cart
+            
+            $this->isProductInCarts = []; 
+            $this->updateCart();
+
+            
+            
+            DB::table('cart_items')->where('cart_id', $mainCart->id)->delete();
+
+            
+            DB::commit(); 
+            $this->mount();
+ 
+            // Reset form fields
+            $this->reset(['name', 'address', 'phone_number', 'shiping_zone', 'total_price', 'shipingValue','isProductInCarts']);
+
+            session()->flash('success', 'আপনার টি সফলভাবে প্রদান করা হয়েছে, অর্ডার নাম্বার ' . $orderNumber);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            session()->flash('error', 'অর্ডার প্রদান করতে সমস্যা হচ্ছে' .$e->getMessage());
         }
     }
+
 
     public function render()
     {

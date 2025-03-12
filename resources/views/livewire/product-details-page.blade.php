@@ -127,30 +127,35 @@
                     </h2>
 
                     <ul class="mt-4 xl:mt-5 flex flex-col gap-y-5 xl:divide-y">
-                        <li class="flex items-start gap-x-2 xl:gap-x-4">
+                        @foreach ($product['details'][0]['lists'] as $listItem)
+                        <li class="flex items-center gap-x-2 xl:gap-x-4">
                             <span
                                 class="flex w-5 h-5 bg-second items-center justify-center rounded-full border-[4px] border-[#FFCBCB] shrink-0"></span>
-                            <p class="text-base xl:text-xl font-normal text-third">{{
-                                $product['details'][0]['description'] }}
+                            <p class="text-base xl:text-xl font-normal text-third">
+                                {{ $listItem }}
                             </p>
                         </li>
+                        @endforeach
                     </ul>
 
                     <div class="my-7 xl:my-16"></div>
 
-                    @if ($product['details'][0]['title_2'] && $product['details'][0]['description_2'])
+                    @if ($product['details'][0]['title_2'] && $product['details'][0]['lists_2'])
 
                     <h2 class="text-2xl xl:text-[34px] xl:leading-[150%] font-semibold text-second">{{
                         $product['details'][0]['title_2'] }}
                     </h2>
 
                     <ul class="mt-4 xl:mt-5 flex flex-col gap-y-5 xl:divide-y">
-                        <li class="flex items-start gap-x-2 xl:gap-x-4">
+                        @foreach ($product['details'][0]['lists_2'] as $listItem)
+                        <li class="flex items-center gap-x-2 xl:gap-x-4">
                             <span
                                 class="flex w-5 h-5 bg-second items-center justify-center rounded-full border-[4px] border-[#FFCBCB] shrink-0"></span>
-                            <p class="text-base xl:text-xl font-normal text-third">{{
-                                $product['details'][0]['description_2'] }}</p>
+                            <p class="text-base xl:text-xl font-normal text-third">
+                                {{ $listItem }}
+                            </p>
                         </li>
+                        @endforeach
                     </ul>
                     @endif
                 </div>
@@ -176,7 +181,7 @@
                     </h2>
 
                     <ul class="mt-3 xl:mt-5 flex flex-col gap-y-5">
-                        @foreach ($product['details'][1]['lists'] as $listItem)
+                        @foreach ($product['details'][1]['lists_2'] as $listItem)
                         <li class="flex items-center gap-x-2 xl:gap-x-4">
                             <span
                                 class="flex w-5 h-5 bg-second items-center justify-center rounded-full border-[4px] border-[#FFCBCB] shrink-0"></span>
@@ -189,8 +194,7 @@
 
                     <div class="my-5 xl:my-12"></div>
 
-                    @if ($product['details'][1]['title_2'] && $product['details'][1]['description_2'])
-
+                    @if ($product['details'][1]['title_2'] && $product['details'][1]['lists_2'])
 
 
                     <h2 class="text-2xl xl:text-[34px] xl:leading-[150%] font-semibold text-second">{{
@@ -198,12 +202,15 @@
                     </h2>
 
                     <ul class="mt-3 xl:mt-5 flex flex-col gap-y-5">
+                        @foreach ($product['details'][0]['lists_2'] as $listItem)
                         <li class="flex items-center gap-x-2 xl:gap-x-4">
                             <span
                                 class="flex w-5 h-5 bg-second items-center justify-center rounded-full border-[4px] border-[#FFCBCB] shrink-0"></span>
-                            <p class="text-base xl:text-xl font-normal text-third">{{
-                                $product['details'][1]['description_2'] }} </p>
+                            <p class="text-base xl:text-xl font-normal text-third">
+                                {{ $listItem }}
+                            </p>
                         </li>
+                        @endforeach
                     </ul>
                     @endif
 
