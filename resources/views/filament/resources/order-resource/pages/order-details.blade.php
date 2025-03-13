@@ -20,6 +20,12 @@
         }
     </style>
 
+    @if (session()->has('success'))
+    <div class="bg-green-500 text-white p-4 rounded-md mb-4">
+        {{ session('success') }}
+    </div>
+    @endif
+
     <div class="w-full">
         <h2 class="font-semibold text-xl">Order Status</h2>
         <div class="flex items-center gap-x-3 mt-2">
@@ -54,7 +60,8 @@
                     }}</h4>
                 <h5 class="text-sm font-normal"><strong class="text-base">Shipping zone</strong>: {{
                     $order->shipping_zone }}</h5>
-                <h5 class="text-sm font-normal capitalize"><strong class="text-base">Status</strong>: {{ $order->status }}</h5>
+                <h5 class="text-sm font-normal capitalize"><strong class="text-base">Status</strong>: {{ $order->status
+                    }}</h5>
 
             </div>
             <div class="text-end">

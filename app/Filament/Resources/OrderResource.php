@@ -16,6 +16,7 @@ use Filament\Tables\Actions\ActionGroup;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Section;
+use Filament\Tables\Filters\SelectFilter;
 
 class OrderResource extends Resource
 {
@@ -61,7 +62,7 @@ class OrderResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('id')->sortable(),
-                TextColumn::make('customer_name')->searchable()->label('Name'),
+                TextColumn::make('customer_name')->searchable()->sortable()->label('Name'),
                 TextColumn::make('customer_phone')->searchable()->label('Phone'),
                 TextColumn::make('customer_address')->searchable()->label('Address'),
                 TextColumn::make('total_price')->money('bdt')->sortable(),
@@ -71,6 +72,7 @@ class OrderResource extends Resource
                         'cancelled' => 'danger',
                         'pending' => 'primary',
                     })
+                    ->sortable()
                     ->label('Status'),
                 TextColumn::make('created_at')->label('Order at')->dateTime()->sortable(),
             ])
@@ -86,7 +88,17 @@ class OrderResource extends Resource
                     DeleteAction::make(),
                 ]),
             ])
-            ->filters([])
+            ->filters([
+                SelectFilter::make('status')
+                    ->options([
+                        'pending' => 'Pending',
+                        'processing' => 'Processing',
+                        'shipped' => 'Shipped',
+                        'completed' => 'Completed',
+                        'canceled' => 'Canceled',
+                    ])
+                    ->label('Order Status') 
+            ]) 
             ->bulkActions([])
             ->modifyQueryUsing(fn($query) => $query->latest());
     }

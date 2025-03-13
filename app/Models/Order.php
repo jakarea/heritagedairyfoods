@@ -24,12 +24,12 @@ class Order extends Model
         'status',
     ];
 
-    // protected static function booted()
-    // {
-    //     static::deleting(function ($order) {
-    //         $order->orderItems()->delete(); // Delete all related order items
-    //     });
-    // }
+    protected static function booted()
+    {
+        static::deleting(function ($order) {
+            $order->orderItems()->delete();
+        });
+    }
 
     public function orderItems()
     {

@@ -59,5 +59,7 @@ class OrderDetails extends Page
 
         $mail = "heritagedairyfoods@gmail.com";
         Mail::to($mail)->send(new OrderInfo($subject, $body));
+
+        session()->flash('success', 'Email sent successfully.');
     }
 }
