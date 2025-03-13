@@ -4,10 +4,12 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Session;
 
 class ProductList extends Component
 {
-    public $products = []; 
+
+    public $products = [];  
 
     public function mount()
     {
@@ -20,12 +22,12 @@ class ProductList extends Component
         }
     }
 
-    public function addToCart($productId)
+    public function addProductToCart($productId)
     {
-        // Emit the event to Cart component
-        $this->dispatch('addToCartEvent', $productId); 
-    } 
- 
+        // Trigger the event to update the Cart component
+        $this->dispatch('addToCartEvent', $productId);
+    }
+
 
     public function render()
     {

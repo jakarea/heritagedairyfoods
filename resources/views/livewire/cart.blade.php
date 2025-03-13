@@ -15,9 +15,7 @@
                 </h3> 
 
                 <div class="grid grid-cols-1 xl:grid-cols-2 xl:gap-x-[250px] gap-y-3">
-                    @foreach ($products as $product) 
-                    <!-- item -->
-                {{-- <pre>{{ print_r($isProductInCarts) }}</pre> --}}
+                    @foreach ($products as $product)  
 
                     <div
                         class="w-full border border-[#EAEAEA] p-3 xl:p-5 grid grid-cols-3 gap-x-3 xl:gap-x-5 items-center xl:flex anim hover:bg-[#F6F6F6] rounded-md">
@@ -209,6 +207,11 @@
                         <tr>
                             <td class="py-2">
                                 <div class="flex items-center gap-x-3 xl:gap-x-5">
+                                    <button type="button" 
+                                    wire:click="removeFromCart({{ $product['id'] }})"
+                                    class="bg-red-500 text-white w-5 h-5 flex justify-center items-center">
+                                        X
+                                    </button>
                                     <div
                                         class="w-[105px] h-[95px] border border-[#EAEAEA] flex justify-center items-center rounded-md">
                                         @if ($product['image'])
@@ -310,10 +313,9 @@
                         <button type="submit"
                             class="bg-second text-white text-sm font-semibold py-4 px-4 rounded-md anim hover:bg-third w-full block xl:text-4xl"
                             wire:loading.attr="disabled" wire:target="submit">
-
-                            <!-- Show 'Processing...' when submitting, else show 'অর্ডার করুন' -->
+ 
                             <span wire:loading.remove>অর্ডার করুন</span>
-                            <span wire:loading>প্রক্রিয়াধীন...</span>
+                            <span wire:loading>অর্ডার গ্রহন করা হচ্ছে ...</span>
                         </button>
                     </div>
                 </div>

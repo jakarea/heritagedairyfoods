@@ -54,8 +54,7 @@ class Cart extends Component
         $this->loadProducts();
         $this->getCartId();
         $this->updateCart();
-
-        // Log::debug('Data:', ['data' => $this->isProductInCarts]);
+ 
     }
 
     private function loadProducts()
@@ -80,13 +79,13 @@ class Cart extends Component
             ]);
         } else {
             $cartId = $cart->id;
-        }
-
+        } 
         return $cartId;
     }
 
     public function toggleCart($productId, $isChecked)
-    { 
+    {  
+        
         if ($isChecked) {
             // Add the product to the cart
             $this->addToCart($productId);
@@ -96,7 +95,7 @@ class Cart extends Component
         }
 
         // Optionally update the cart display or total after adding/removing
-        $this->updateCart();
+        $this->updateCart(); 
     }
 
     public function isProductInCart()
@@ -153,8 +152,7 @@ class Cart extends Component
             ->where('product_id', $productId)
             ->delete();
 
-        $this->updateCart();
-        // $this->isProductInCart();
+        $this->updateCart(); 
     }
 
     private function getProductById($productId)
@@ -281,6 +279,12 @@ class Cart extends Component
             ->sum('price');
     }
 
+    public function clearCart()
+    {
+        $mainCart = DB::table('carts')->where('session_id', $this->sessionId)->first();
+        DB::table('cart_items')->where('cart_id', $mainCart->id)->delete();
+    }
+
     public function submit()
     {
         // Validate user input
@@ -345,22 +349,20 @@ class Cart extends Component
             }
 
             // Clear the cart
-            
-            $this->isProductInCarts = []; 
+            $this->clearCart(); 
             $this->updateCart();
-
             
-            
-            DB::table('cart_items')->where('cart_id', $mainCart->id)->delete();
-
-            
-            DB::commit(); 
-            $this->mount();
+            DB::commit();
  
             // Reset form fields
-            $this->reset(['name', 'address', 'phone_number', 'shiping_zone', 'total_price', 'shipingValue','isProductInCarts']);
+            $this->reset(['name', 'address', 'phone_number', 'shiping_zone', 'total_price', 'shipingValue']);
 
-            session()->flash('success', 'আপনার টি সফলভাবে প্রদান করা হয়েছে, অর্ডার নাম্বার ' . $orderNumber);
+            // Redirect to the order page
+            session()->flash('success', 'আপনার অর্ডার সফলভাবে গ্রহন করা হয়েছে, অর্ডার নাম্বার ' . $orderNumber);
+
+            return $this->redirect('/');    
+
+
         } catch (\Exception $e) {
             DB::rollBack();
             session()->flash('error', 'অর্ডার প্রদান করতে সমস্যা হচ্ছে' .$e->getMessage());

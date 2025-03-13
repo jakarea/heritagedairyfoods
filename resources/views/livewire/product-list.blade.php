@@ -29,18 +29,20 @@
                                 <path d="M13.5 4.5L21 12M21 12L13.5 19.5M21 12H3" stroke="currentColor"
                                     stroke-linecap="round" stroke-linejoin="round" />
                             </svg>
-                        </a>
- 
+                        </a> 
 
-                        <button type="button" wire:click="addToCart({{ $product['id'] }})"
+                        <button type="button" wire:click="addProductToCart({{ $product['id'] }})"
                             class="flex items-center justify-center py-1 xl:py-3 px-4 w-[109px] gap-x-2 rounded-sm bg-second h-12 anim hover:bg-third">
                             <img src="/images/icons/shopping-cart.svg" alt="cart">
                         </button>
+
                     </div>
                 </div>
             </div>
             <!-- item -->
-            @endforeach
+            @endforeach 
+
+
         </div>
     </div>
 </section>
