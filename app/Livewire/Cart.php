@@ -319,6 +319,9 @@ class Cart extends Component
             $orderNumber = Str::upper(Str::random(8));
             $orderId = DB::table('orders')->insertGetId([
                 'customer_id' => $this->sessionId,
+                'customer_name' => $this->name,
+                'customer_phone' => $this->phone_number,
+                'customer_address' => $this->address,
                 'order_number' => $orderNumber,
                 'total_price' => (float)$this->total_price + (float)$this->shipingValue,
                 'shipping_cost' => (float)$this->shipingValue,

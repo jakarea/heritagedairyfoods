@@ -15,6 +15,9 @@ return new class extends Migration
             $table->id();
             // $table->foreignId('customer_id')->nullable()->constrained('customers')->onDelete('set null');
             $table->string('customer_id')->nullable();
+            $table->string('customer_name')->nullable();
+            $table->string('customer_phone')->nullable(); 
+            $table->text('customer_address')->nullable();
             $table->string('order_number')->unique();
             $table->decimal('total_price', 10, 2);
             $table->decimal('shipping_cost', 10, 2)->default(0);

@@ -124,7 +124,7 @@
                             <label for="" class="block w-full text-sm xl:text-lg font-normal text-black mb-2.5">আপনার
                                 নাম লিখুন <span class="text-[#F92F2F]">*</span> </label>
                             <input type="text" wire:model="name" placeholder="আপনার নাম লিখুন"
-                                class="block w-full h-12 xl:h-[57px] border @error('name') border-red-500 @else border-[#EAEAEA] @enderror rounded-[4px] px-4 text-base xl:text-xl font-normal text-black placeholder:text-[#A6A6A6]">
+                                class="@error('name') !border-red-500 @enderror common-input">
                             @error('name') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                         </div>
 
@@ -132,7 +132,7 @@
                             <label for="" class="block w-full text-sm xl:text-lg font-normal text-black mb-2.5">আপনার
                                 ঠিকানা*</label>
                             <input type="text" wire:model="address" placeholder="আপনার ঠিকানা"
-                                class="block w-full h-12 xl:h-[57px] border @error('address') border-red-500 @else border-[#EAEAEA] @enderror rounded-[4px] px-4 text-base xl:text-xl font-normal text-black placeholder:text-[#A6A6A6]">
+                                class="@error('address') !border-red-500 @enderror common-input">
                             @error('address') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                         </div>
                         <div class="w-full">
@@ -140,7 +140,7 @@
                                 ফোন
                                 নম্বর*</label>
                             <input type="number" wire:model="phone_number" placeholder="আপনার ফোন নম্বর"
-                                class="block w-full h-12 xl:h-[57px] border @error('phone_number') border-red-500 @else border-[#EAEAEA] @enderror rounded-[4px] px-4 text-base xl:text-xl font-normal text-black placeholder:text-[#A6A6A6]">
+                                class="@error('phone_number') !border-red-500 @enderror common-input">
                             @error('phone_number') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                         </div>
                         <div class="w-full">
