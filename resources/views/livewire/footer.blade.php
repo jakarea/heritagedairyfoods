@@ -43,7 +43,7 @@
                 </ul>
             </div>
             <div class="text-center border-t border-[#939393] pt-4 mt-4 xl:pt-7 xl:mt-7">
-                <p class="text-sm font-normal">&copy; 2025 All Rights Reserved Designed by Giopio</p>
+                <p class="text-sm font-normal flex ictems-center justify-center gap-x-2">&copy; 2025 All Rights Reserved. Crafted by <a href="https://www.giopio.com/"><img src="{{ asset('images/giopio-logo.svg') }}" alt="giopio" class="max-w-[70px]"></a></p>
             </div>
         </div>
     </footer>

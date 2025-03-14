@@ -2,6 +2,8 @@
 
 namespace App\Providers\Filament;
 
+use App\Models\Attendance;
+use Filament\Facades\Filament;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -16,7 +18,10 @@ use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use App\Filament\Widgets\OrderStatusWidget;
+
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -53,6 +58,59 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
+            ])
+            ->navigationItems($this->getNavigationItems())
+            ->plugins([
+                \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make(),
             ]);
+    }
+
+    public function getWidgets(): array
+    {
+        return [
+            OrderStatusWidget::class,
+        ];
+    }
+
+    protected function getNavigationItems(): array
+    {
+        if (!Auth::check()) {
+            return []; // If the user is not logged in, show nothing
+        }
+
+        $user = Auth::user();
+        $latestAttendance = Attendance::where('user_id', $user->id)->latest()->first();
+
+        $isOnBreak = $latestAttendance && $latestAttendance->break_in && !$latestAttendance->break_out;
+        $hasNotCheckedIn = !$latestAttendance || !$latestAttendance->check_in;
+
+        if ($isOnBreak || $hasNotCheckedIn) {
+            return [
+                [
+                    'label' => 'Attendance',
+                    'url' => route('filament.admin.resources.attendances.index'),
+                    'icon' => 'heroicon-o-clock',
+                ],
+            ];
+        }
+
+        // Normal navigation when user is checked in and break-out is done
+        return [
+            [
+                'label' => 'Dashboard',
+                'url' => route('filament.admin.pages.dashboard'),
+                'icon' => 'heroicon-o-home',
+            ],
+            [
+                'label' => 'Attendance',
+                'url' => route('filament.admin.resources.attendances.index'),
+                'icon' => 'heroicon-o-clock',
+            ],
+            [
+                'label' => 'Users',
+                'url' => route('filament.admin.resources.users.index'),
+                'icon' => 'heroicon-o-user-group',
+            ],
+        ];
     }
 }

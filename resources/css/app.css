@@ -36,6 +36,10 @@ Theme Primary Font Family: "Inter", serif;
 }
 
 
+.common-input{
+    @apply border-[#EAEAEA] rounded-[4px] px-4 text-base xl:text-xl font-normal text-black placeholder:text-[#A6A6A6] block w-full h-12 xl:h-[57px] border
+}
+
 
 .hero-section .swiper-paginations{
     position: relative!important;
