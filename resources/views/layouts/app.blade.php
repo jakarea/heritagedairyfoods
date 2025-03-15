@@ -21,7 +21,7 @@
     content="Heritage Dairy Foods offers pure, natural, and chemical-free dairy products including traditional Bogura Doi, Ghee, and Premium Lachha Semai, directly from our farms to your table.">
   <meta property="og:url" content="https://heritagedairyfoods.com/">
   <meta property="og:site_name" content="Heritage Dairy Foods">
-  <meta property="og:image" content="/images/home-image.png">
+  <meta property="og:image" content="{{ asset('images/home-image.png') }}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:type" content="image/webp">
@@ -31,13 +31,13 @@
   <meta name="twitter:title" content="Heritage Dairy Foods - Pure and Traditional Dairy Products">
   <meta name="twitter:description"
     content="Heritage Dairy Foods offers pure, natural, and chemical-free dairy products including traditional Bogura Doi, Ghee, and Premium Lachha Semai, directly from our farms to your table.">
-  <meta name="twitter:image" content="/images/home-image.png">
+  <meta name="twitter:image" content="{{ asset('images/home-image.png') }}">
   <meta name="twitter:site" content="@HeritageDairyFoods">
   <meta name="twitter:creator" content="@HeritageDairyFoods">
 
 
   <!-- tailwind CSS start -->
-  <link rel="shortcut icon" href="/images/favicon.svg" type="image/x-icon">
+  <link rel="shortcut icon" href="{{ asset('images/favicon.png') }}" type="image/x-icon">
 
   <!-- swipper slider css -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
