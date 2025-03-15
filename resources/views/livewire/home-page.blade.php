@@ -10,31 +10,35 @@
         </div>
 
         <div class="swiper-wrapper">
-            <!-- slider -->
-            <div class="swiper-slide">
+           
+             <!-- slider -->
+             <div class="swiper-slide">
                 <section class="w-full hero-section py-20 relative xl:h-[730px]">
+                    <img src="/images/symbols.svg" alt="symbols" class="absolute right-0 top-0 z-30 hidden xl:flex">
                     <div class="container">
                         <div class="flex flex-col gap-y-5 xl:gap-y-0 xl:flex-row xl:items-center h-full xl:py-24 xl:justify-between">
                             <div class="order-2 text-center relative xl:order-1 xl:text-start">
                                 <div class="relative">
                                     <img src="/images/green-leap.svg" alt="green-leap"
                                         class="hidden xl:flex absolute -left-2 -top-14">
-                                    <h1 class="font-bold text-4xl text-black xl:text-[72px] xl:leading-[100%]">বগুড়ার
-                                        আসল দই</h1>
+                                    <h1 class="font-bold text-4xl text-black xl:text-[72px] xl:leading-[110%]">বগুড়ার
+                                        ঘিয়ে ভাজা স্পেশাল
+                                        লাচ্ছা
+                                        সেমাই </h1>
                                     <img src="/images/red-flower.svg" alt="red-flower"
-                                        class="hidden xl:flex absolute right-3 -top-6">
+                                        class="hidden xl:flex absolute right-12 -top-6">
                                 </div>
-                                <p class="font-medium text-lg xl:text-4xl tracking-[5px] my-4 xl:mb-10">বিশুদ্ধ স্বাদের
+                                <p class="font-medium text-lg xl:text-4xl tracking-[5px] my-4 xl:mb-10">স্বাদের এক
                                     ঐতিহ্য!</p>
-                                <a href="#" onclick="scrollToSection('cart_section')"
+                                    <a href="#" onclick="scrollToSection('cart_section')"
                                     class="bg-second text-white text-sm font-semibold py-3 px-6 pr-4 rounded-md anim hover:bg-third xl:text-xl inline-flex items-center gap-x-4 shadow-second hover:shadow-none">
                                     অর্ডার করুন
                                     <img src="/images/icons/arrow-right.svg" alt="arrow" class="anim moving-down">
                                 </a>
                             </div>
                             <div class="order-1 relative xl:order-2 xl:text-end">
-                                <img src="/images/doi.webp" alt="doi"
-                                    class="mx-auto max-w-[90%] xl:max-w-[98%] xl:ml-auto xl:mx-0">
+                                <img src="/images/laccha.webp" alt="laccha"
+                                    class="mx-auto max-w-[90%] xl:max-w-[96%] xl:ml-auto xl:mx-0">
                             </div>
                         </div>
                     </div>
@@ -76,40 +80,38 @@
                 </section>
             </div>
             <!-- slider -->
-            <!-- slider -->
-            <div class="swiper-slide">
+             <!-- slider -->
+             <div class="swiper-slide">
                 <section class="w-full hero-section py-20 relative xl:h-[730px]">
-                    <img src="/images/symbols.svg" alt="symbols" class="absolute right-0 top-0 z-30 hidden xl:flex">
                     <div class="container">
                         <div class="flex flex-col gap-y-5 xl:gap-y-0 xl:flex-row xl:items-center h-full xl:py-24 xl:justify-between">
                             <div class="order-2 text-center relative xl:order-1 xl:text-start">
                                 <div class="relative">
                                     <img src="/images/green-leap.svg" alt="green-leap"
                                         class="hidden xl:flex absolute -left-2 -top-14">
-                                    <h1 class="font-bold text-4xl text-black xl:text-[72px] xl:leading-[110%]">বগুড়ার
-                                        ঘিয়ে ভাজা স্পেশাল
-                                        লাচ্ছা
-                                        সেমাই </h1>
+                                    <h1 class="font-bold text-4xl text-black xl:text-[72px] xl:leading-[100%]">বগুড়ার
+                                        আসল দই</h1>
                                     <img src="/images/red-flower.svg" alt="red-flower"
-                                        class="hidden xl:flex absolute right-12 -top-6">
+                                        class="hidden xl:flex absolute right-3 -top-6">
                                 </div>
-                                <p class="font-medium text-lg xl:text-4xl tracking-[5px] my-4 xl:mb-10">স্বাদের এক
+                                <p class="font-medium text-lg xl:text-4xl tracking-[5px] my-4 xl:mb-10">বিশুদ্ধ স্বাদের
                                     ঐতিহ্য!</p>
-                                    <a href="#" onclick="scrollToSection('cart_section')"
+                                <a href="#" onclick="scrollToSection('cart_section')"
                                     class="bg-second text-white text-sm font-semibold py-3 px-6 pr-4 rounded-md anim hover:bg-third xl:text-xl inline-flex items-center gap-x-4 shadow-second hover:shadow-none">
                                     অর্ডার করুন
                                     <img src="/images/icons/arrow-right.svg" alt="arrow" class="anim moving-down">
                                 </a>
                             </div>
                             <div class="order-1 relative xl:order-2 xl:text-end">
-                                <img src="/images/laccha.webp" alt="laccha"
-                                    class="mx-auto max-w-[90%] xl:max-w-[96%] xl:ml-auto xl:mx-0">
+                                <img src="/images/doi.webp" alt="doi"
+                                    class="mx-auto max-w-[90%] xl:max-w-[98%] xl:ml-auto xl:mx-0">
                             </div>
                         </div>
                     </div>
                 </section>
             </div>
             <!-- slider -->
+           
         </div>
         <div class="swiper-pagination"></div>
 
