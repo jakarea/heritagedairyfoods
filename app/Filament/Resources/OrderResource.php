@@ -32,11 +32,18 @@ class OrderResource extends Resource
         return $form->schema([
             Section::make('Order Details')->schema([
                 TextInput::make('id')->disabled()->hidden(),
-                TextInput::make('customer_id')->label('Customer ID')->disabled(),
-                TextInput::make('order_number')->label('Order Number'),
+                TextInput::make('customer_name')->label('Customer Name'),
+                TextInput::make('customer_phone')->label('Phone'),
+                TextInput::make('customer_address')->label('Address'),
+                TextInput::make('order_number')->label('Order Number')->disabled(),
                 TextInput::make('total_price')->label('Total Price')->prefix('BDT'),
-                TextInput::make('shipping_cost')->label('Shipping Cost')->prefix('BDT'),
-                TextInput::make('shipping_zone')->label('Shipping Zone'),
+                TextInput::make('shipping_cost')->label('Shipping Cost')->prefix('BDT'), 
+                Select::make('shipping_zone')
+                    ->label('Shipping Zone')
+                    ->options([
+                        'inside_dhaka' => 'Inside of Dhaka',
+                        'outside_dhaka' => 'Outside of Dhaka', 
+                    ]),
                 Select::make('payment_method')
                     ->label('Payment Method')
                     ->options([
@@ -49,8 +56,10 @@ class OrderResource extends Resource
                 Select::make('status')
                     ->options([
                         'pending' => 'Pending',
+                        'processing' => 'Processing',
+                        'shipped' => 'Shipped',
                         'completed' => 'Completed',
-                        'cancelled' => 'Cancelled',
+                        'canceled' => 'Canceled',
                     ]), // Disable for viewing
                 TextInput::make('created_at')->label('Order time')->disabled(),
             ]),
@@ -62,15 +71,18 @@ class OrderResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('id')->sortable(),
+                TextColumn::make('order_number')->searchable()->label('Order ID'),
                 TextColumn::make('customer_name')->searchable()->sortable()->label('Name'),
                 TextColumn::make('customer_phone')->searchable()->label('Phone'),
-                TextColumn::make('customer_address')->searchable()->label('Address'),
+                TextColumn::make('customer_address')->searchable()->label('Address')->limit(50),
                 TextColumn::make('total_price')->money('bdt')->sortable(),
                 TextColumn::make('status')
                     ->badge(fn($state) => match ($state) {
-                        'completed' => 'primary',
-                        'cancelled' => 'danger',
                         'pending' => 'primary',
+                        'processing' => 'danger',
+                        'shipped' => 'primary',
+                        'completed' => 'primary',
+                        'canceled' => 'primary',
                     })
                     ->sortable()
                     ->label('Status'),
@@ -97,8 +109,8 @@ class OrderResource extends Resource
                         'completed' => 'Completed',
                         'canceled' => 'Canceled',
                     ])
-                    ->label('Order Status') 
-            ]) 
+                    ->label('Order Status')
+            ])
             ->bulkActions([])
             ->modifyQueryUsing(fn($query) => $query->latest());
     }

@@ -15,9 +15,9 @@
                     <p class="font-normal text-base xl:text-xl my-4 xl:mb-10 xl:max-w-[70%]">{{ $product['subtitle'] }}
                     </p>
                     <button type="button" onclick="scrollToSection('cart_section')"
-                        class="bg-second text-white text-sm font-semibold py-3 px-6 rounded-md anim hover:bg-third xl:text-xl inline-flex items-center gap-x-3 shadow-second">এখনই
+                        class="bg-second text-white text-sm font-semibold py-3 px-6 rounded-md anim hover:bg-third xl:text-xl inline-flex items-center gap-x-3 shadow-second hover:shadow-none">
                         অর্ডার করুন
-                        <img src="/images/icons/arrow-right.svg" alt="arrow">
+                        <img src="/images/icons/arrow-right.svg" alt="arrow" class="anim moving-down">
                     </button>
                 </div>
                 <div class="order-1 relative xl:order-2 xl:text-end">
@@ -107,9 +107,9 @@
                 <p class="font-normal text-base xl:text-xl mb-3 xl:mb-5">{{ $product['video']['description'] }}
                 </p>
                 <button type="button" onclick="scrollToSection('cart_section')"
-                    class="bg-second text-white text-sm font-semibold py-3 px-6 rounded-md anim hover:bg-third xl:text-xl inline-flex items-center gap-x-3 shadow-second">এখনই
+                    class="bg-second text-white text-sm font-semibold py-3 px-6 rounded-md anim hover:bg-third xl:text-xl inline-flex items-center gap-x-3 shadow-second hover:shadow-none">
                     অর্ডার করুন
-                    <img src="/images/icons/arrow-right.svg" alt="arrow">
+                    <img src="/images/icons/arrow-right.svg" alt="arrow" class="anim moving-down">
                 </button>
             </div>
         </div>

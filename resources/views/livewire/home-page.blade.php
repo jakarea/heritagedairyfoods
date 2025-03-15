@@ -14,7 +14,7 @@
             <div class="swiper-slide">
                 <section class="w-full hero-section py-20 relative xl:h-[730px]">
                     <div class="container">
-                        <div class="flex flex-col xl:flex-row xl:items-center h-full xl:py-24 xl:justify-between">
+                        <div class="flex flex-col gap-y-5 xl:gap-y-0 xl:flex-row xl:items-center h-full xl:py-24 xl:justify-between">
                             <div class="order-2 text-center relative xl:order-1 xl:text-start">
                                 <div class="relative">
                                     <img src="/images/green-leap.svg" alt="green-leap"
@@ -26,10 +26,10 @@
                                 </div>
                                 <p class="font-medium text-lg xl:text-4xl tracking-[5px] my-4 xl:mb-10">বিশুদ্ধ স্বাদের
                                     ঐতিহ্য!</p>
-                                <a href="#"
-                                    class="bg-second text-white text-sm font-semibold py-3 px-6 rounded-md anim hover:bg-third xl:text-xl inline-flex items-center gap-x-3 shadow-second">এখনই
+                                <a href="#" onclick="scrollToSection('cart_section')"
+                                    class="bg-second text-white text-sm font-semibold py-3 px-6 pr-4 rounded-md anim hover:bg-third xl:text-xl inline-flex items-center gap-x-4 shadow-second hover:shadow-none">
                                     অর্ডার করুন
-                                    <img src="/images/icons/arrow-right.svg" alt="arrow">
+                                    <img src="/images/icons/arrow-right.svg" alt="arrow" class="anim moving-down">
                                 </a>
                             </div>
                             <div class="order-1 relative xl:order-2 xl:text-end">
@@ -49,7 +49,7 @@
                     <img src="/images/multiple-leaps.svg" alt="multiple-leaps"
                         class="absolute left-0 bottom-0 z-30 rotate-180 hidden xl:flex">
                     <div class="container">
-                        <div class="flex flex-col xl:flex-row xl:items-center h-full xl:py-24 xl:justify-between">
+                        <div class="flex flex-col gap-y-5 xl:gap-y-0 xl:flex-row xl:items-center h-full xl:py-24 xl:justify-between">
                             <div class="order-2 text-center relative xl:order-1 xl:text-start">
                                 <div class="relative">
                                     <img src="/images/green-leap.svg" alt="green-leap"
@@ -61,10 +61,10 @@
                                 </div>
                                 <p class="font-medium text-lg xl:text-4xl tracking-[5px] my-4 xl:mb-10">স্বাদের এক
                                     ঐতিহ্য!</p>
-                                <a href="#"
-                                    class="bg-second text-white text-sm font-semibold py-3 px-6 rounded-md anim hover:bg-third xl:text-xl inline-flex items-center gap-x-3 shadow-second">এখনই
+                                    <a href="#" onclick="scrollToSection('cart_section')"
+                                    class="bg-second text-white text-sm font-semibold py-3 px-6 pr-4 rounded-md anim hover:bg-third xl:text-xl inline-flex items-center gap-x-4 shadow-second hover:shadow-none">
                                     অর্ডার করুন
-                                    <img src="/images/icons/arrow-right.svg" alt="arrow">
+                                    <img src="/images/icons/arrow-right.svg" alt="arrow" class="anim moving-down">
                                 </a>
                             </div>
                             <div class="order-1 relative xl:order-2 xl:text-end">
@@ -81,7 +81,7 @@
                 <section class="w-full hero-section py-20 relative xl:h-[730px]">
                     <img src="/images/symbols.svg" alt="symbols" class="absolute right-0 top-0 z-30 hidden xl:flex">
                     <div class="container">
-                        <div class="flex flex-col xl:flex-row xl:items-center h-full xl:py-24 xl:justify-between">
+                        <div class="flex flex-col gap-y-5 xl:gap-y-0 xl:flex-row xl:items-center h-full xl:py-24 xl:justify-between">
                             <div class="order-2 text-center relative xl:order-1 xl:text-start">
                                 <div class="relative">
                                     <img src="/images/green-leap.svg" alt="green-leap"
@@ -95,10 +95,10 @@
                                 </div>
                                 <p class="font-medium text-lg xl:text-4xl tracking-[5px] my-4 xl:mb-10">স্বাদের এক
                                     ঐতিহ্য!</p>
-                                <a href="#"
-                                    class="bg-second text-white text-sm font-semibold py-3 px-6 rounded-md anim hover:bg-third xl:text-xl inline-flex items-center gap-x-3 shadow-second">এখনই
+                                    <a href="#" onclick="scrollToSection('cart_section')"
+                                    class="bg-second text-white text-sm font-semibold py-3 px-6 pr-4 rounded-md anim hover:bg-third xl:text-xl inline-flex items-center gap-x-4 shadow-second hover:shadow-none">
                                     অর্ডার করুন
-                                    <img src="/images/icons/arrow-right.svg" alt="arrow">
+                                    <img src="/images/icons/arrow-right.svg" alt="arrow" class="anim moving-down">
                                 </a>
                             </div>
                             <div class="order-1 relative xl:order-2 xl:text-end">
@@ -130,45 +130,38 @@
         <div class="container">
             <div class="w-full grid grid-cols-1 gap-y-6 xl:grid-cols-2 xl:items-center xl:gap-x-2">
                 <div class="txt order-2 xl:order-1">
-                    <h2 class="text-2xl xl:text-[34px] xl:leading-[150%] font-semibold text-second">কেনো আমরা বলি না
-                        আমরাই সেরা-
-                        কারন আমাদের পণ্য সেরাদের সেরা
+                    <h2 class="text-2xl xl:text-[34px] xl:leading-[150%] font-semibold text-second">
+                        আমরা বলি না যে আমরাই সেরা—আমাদের পণ্যই প্রমাণ করে সেরা মানের প্রতিশ্রুতি।
                     </h2>
 
                     <ul class="mt-6 xl:mt-10 flex flex-col gap-y-5 xl:divide-y">
                         <li class="flex items-center gap-x-2 xl:pt-5 xl:gap-x-4">
                             <span
                                 class="flex w-5 h-5 bg-second items-center justify-center rounded-full border-[4px] border-[#FFCBCB] shrink-0"></span>
-                            <p class="text-base xl:text-xl font-normal text-third">১০০ ভাগ প্রাকৃতিক উপাদান ব্যবহারের
-                                নিশ্চয়তা</p>
-                        </li>
-                        <li class="flex items-center gap-x-2 xl:pt-5 xl:gap-x-4">
-                            <span
-                                class="flex w-5 h-5 bg-second items-center justify-center rounded-full border-[4px] border-[#FFCBCB] shrink-0"></span>
-                            <p class="text-base xl:text-xl font-normal text-third">খামার থেকে সরাসরি আপনার বাসার ডাইনিং
-                                টেবিলে পরিবেশন
+                            <p class="text-base xl:text-xl font-normal text-third">
+                                <b>১০০% প্রাকৃতিক উপাদানের নিশ্চয়তা </b> – বিশুদ্ধ উপাদান থেকে তৈরি প্রতিটি পণ্য।
                             </p>
                         </li>
                         <li class="flex items-center gap-x-2 xl:pt-5 xl:gap-x-4">
                             <span
                                 class="flex w-5 h-5 bg-second items-center justify-center rounded-full border-[4px] border-[#FFCBCB] shrink-0"></span>
-                            <p class="text-base xl:text-xl font-normal text-third">বিশুদ্ধ দেশি গরুর দুধ- যা আমাদের
-                                নিজেদের খামারে
-                                পালিত</p>
+                            <p class="text-base xl:text-xl font-normal text-third"><b>খামার থেকে আপনার টেবিল পর্যন্ত সরাসরি সরবরাহ </b> – আমাদের নিজস্ব খামারে পালিত গরুর বিশুদ্ধ দুধ।
+                            </p>
                         </li>
                         <li class="flex items-center gap-x-2 xl:pt-5 xl:gap-x-4">
                             <span
                                 class="flex w-5 h-5 bg-second items-center justify-center rounded-full border-[4px] border-[#FFCBCB] shrink-0"></span>
-                            <p class="text-base xl:text-xl font-normal text-third">সর্বোচ্চ মান এবং সঠিক সাস্থ্যবিধি
-                                মেনে,
-                                পরিষ্কার-পরিচ্ছন্নতার সাথে প্রক্রিয়াজাতকৃত</p>
+                            <p class="text-base xl:text-xl font-normal text-third"><b>সর্বোচ্চ মান ও স্বাস্থ্যবিধির প্রতিশ্রুতি </b> – পরিষ্কার-পরিচ্ছন্ন পরিবেশে প্রক্রিয়াজাতকৃত, গুণগত মানে কোনো আপস নয়।</p>
                         </li>
                         <li class="flex items-center gap-x-2 xl:pt-5 xl:gap-x-4">
                             <span
                                 class="flex w-5 h-5 bg-second items-center justify-center rounded-full border-[4px] border-[#FFCBCB] shrink-0"></span>
-                            <p class="text-base xl:text-xl font-normal text-third">দ্রুত ও নির্ভরযোগ্য ডেলিভারি – নিজস্ব
-                                পরিবহনে আপনার
-                                দরজায়</p>
+                            <p class="text-base xl:text-xl font-normal text-third"><b>দ্রুত ও নির্ভরযোগ্য ডেলিভারি </b> – আমাদের নিজস্ব পরিবহনে নিরাপদে আপনার দোরগোড়ায় পৌঁছে দিই।</p>
+                        </li>
+                        <li class="flex items-center gap-x-2 xl:pt-5 xl:gap-x-4">
+                            <span
+                                class="flex w-5 h-5 bg-second items-center justify-center rounded-full border-[4px] border-[#FFCBCB] shrink-0"></span>
+                            <p class="text-base xl:text-xl font-normal text-third">বিশ্বাস, গুণগত মান এবং নির্ভরযোগ্যতার প্রতিশ্রুতি— <b>এটাই আমাদের শক্তি। </b></p>
                         </li>
                     </ul>
                 </div>
@@ -248,28 +241,18 @@
                 <h3 class="text-second text-xl font-semibold xl:text-4xl my-2 xl:mb-8 xl:mt-4">হেরিটেজ ডেইরি অ্যান্ড ফুড
                     প্রোডাক্ট</h3>
                 <p
-                    class="text-sm md:text-base xl:text-lg xl:leading-[150%] font-normal text-third text-justify xl:text-center xl:mx-12">
-                    হেরিটেজ ডেইরি অ্যান্ড ফুডে, আমরা শুধুমাত্র একটি দুগ্ধ থেকে উৎপাদিত পন্যের ব্র্যান্ডের চেয়ে অনেক
-                    বেশি – আমরা
-                    ঐতিহ্য এবং বিশুদ্ধতার রক্ষক। বাংলাদেশের এবং বগুড়ার সমৃদ্ধ ঐতিহ্যের সাথে গভীরভাবে সম্পর্কিত, আমরা
-                    খাঁটি,
-                    স্বাস্থ্যকর এবং উচ্চমানের দুগ্ধজাত পণ্য তৈরিতে বিশেষজ্ঞ। আমাদের পণ্যগুলির মধ্যে রয়েছে বিখ্যাত বগুড়ার
-                    দই, খাঁটি
-                    ঘি এবং প্রিমিয়াম লাচ্ছা সেমাই। BSTI সার্টিফিকেশন প্রাপ্ত আমাদের পণ্যসমূহের মাধ্যমে, আমরা আমাদের
-                    নিজস্ব খামার
-                    থেকে সরাসরি সুস্বাদু, রাসায়নিক-মুক্ত এবং বিশুদ্ধ পণ্য সরবরাহ করি। স্বাস্থ্যবিধি এবং সুরক্ষার
-                    সর্বোচ্চ মান
-                    বজায় রেখে, আমরা আপনাকে নিশ্চিন্তভাবে সেরা পণ্য উপহার দিতে প্রতিশ্রুতিবদ্ধ। আমাদের ফার্ম-থেকে-টেবিল
-                    সতেজতা
-                    নিশ্চিত করে যে প্রতিটি পণ্য তার প্রাকৃতিক সমৃদ্ধি এবং স্বাদ বজায় রাখে। খাদ্যপ্রেমী, কন্টেন্ট
-                    নির্মাতা এবং
-                    রন্ধন বিশেষজ্ঞদের পছন্দের তালিকায় থাকা আমাদের পণ্যগুলি সারা দেশে হয়ে উঠেছে একটি শীর্ষ পছন্দ। সময়ের
-                    পরীক্ষিত
-                    কৌশল ব্যবহার করে, আমরা আপনাকে বগুড়ার দুগ্ধ ঐতিহ্যের আসল স্বাদ উপহার দিচ্ছি, যা আপনি বিশ্বাস করতে
-                    পারেন এবং যা
-                    আপনার পছন্দের স্বাদে পরিপূর্ণ। হেরিটেজ ডেইরি এবং ফুড বেছে নেওয়া হাজার হাজার খুশি গ্রাহকদের সাথে যোগ
-                    দিন, কারণ
-                    বিশুদ্ধতা এবং স্বাদে আমরা কখনও আপস করি না।</p>
+                    class="text-sm md:text-base xl:text-lg xl:leading-[150%] font-normal text-third text-justify xl:text-justify xl:mx-12">
+                    হেরিটেজ ডেইরি অ্যান্ড ফুডে, আমরা শুধুমাত্র একটি দুগ্ধজাত পণ্যের ব্র্যান্ড নই – আমরা বাংলাদেশের সমৃদ্ধ ঐতিহ্য ও বিশুদ্ধতার রক্ষক। বগুড়ার ঐতিহ্যের গভীর শিকড় থেকে অনুপ্রাণিত হয়ে, আমরা খাঁটি, স্বাস্থ্যকর এবং উচ্চমানের দুগ্ধজাত পণ্য তৈরিতে নিবেদিত।
+                </br>
+                আমাদের পণ্যের মধ্যে রয়েছে বিখ্যাত বগুড়ার দই, খাঁটি দেশি ঘি এবং প্রিমিয়াম লাচ্ছা সেমাই – যা স্বাদ ও গুণমানে অনন্য। BSTI সার্টিফিকেশন প্রাপ্ত এই পণ্যগুলো আমরা আমাদের নিজস্ব খামার থেকে সরাসরি সংগ্রহ করে রাসায়নিক মুক্ত এবং বিশুদ্ধ অবস্থায় আপনাদের কাছে পৌঁছে দিচ্ছি।
+            </br>
+            স্বাস্থ্যবিধি ও নিরাপত্তার সর্বোচ্চ মান বজায় রেখে প্রক্রিয়াজাত প্রতিটি পণ্য তার প্রাকৃতিক স্বাদ ও গুণমান অটুট রাখে। আমাদের ফার্ম-থেকে-টেবিল সতেজতার প্রতিশ্রুতি নিশ্চিত করে যে আপনি পাচ্ছেন একদম টাটকা ও পুষ্টিকর পণ্য।
+        </br>
+        খাদ্যপ্রেমী, কন্টেন্ট নির্মাতা এবং রন্ধন বিশেষজ্ঞদের পছন্দের তালিকায় থাকা আমাদের পণ্যগুলো আজ সারা দেশে একটি নির্ভরযোগ্য ব্র্যান্ড হিসেবে স্বীকৃত। সময়ের পরীক্ষিত কৌশল ব্যবহার করে আমরা আপনাকে উপহার দিচ্ছি বগুড়ার আসল স্বাদ
+    </br>
+    – যা আপনি বিশ্বাস করতে পারেন এবং উপভোগ করতে পারেন।
+</br>হাজারো হ্যাপী গ্রাহকদের সাথে যোগ দিন এবং উপভোগ করুন হেরিটেজ ডেইরি অ্যান্ড ফুড-এর খাঁটি স্বাদ ও বিশুদ্ধতার প্রতিশ্রুতি। 🍃
+                </p>
             </div>
             <div
                 class="w-full grid grid-cols-2 items-center gap-4 my-10 bg-white p-5 xl:py-[32px] rounded-xl xl:rounded-[20px] xl:grid-cols-4">
@@ -384,7 +367,7 @@
                 <!-- step one -->
             </div>
             <div class="mt-5 text-center xl:mt-[66px]">
-                <a href="#" class="common-bttn">বিস্তারিত জানতে মেসেজ করুন
+                <a target="_blank" href="https://api.whatsapp.com/send?phone=01711798678" aria-label='whatsapp' class="common-bttn">বিস্তারিত জানতে মেসেজ করুন
                     <img src="/images/icons/arrow-right.svg" alt="arrow">
                 </a>
             </div>
@@ -397,7 +380,7 @@
         <img src="/images/pattern-bg-01.webp" alt="pattern bg" class="absolute top-0 left-0 w-full h-full -z-10">
         <div class="container">
             <div class="text-center">
-                <h2 class="text-base xl:text-xl font-normal text-third tracking-[2px]">প্রতিটি কামড়ে সত্যতা</h2>
+                <h2 class="text-base xl:text-xl font-normal text-third tracking-[2px]">প্রতিটি বাইটে সত্যতা</h2>
                 <h3 class="text-second text-xl font-semibold xl:text-4xl my-2">আমাদের গ্রাহকরা আমাদের ওপর বিশ্বাস করেন,
                     জানুন
                     কেন</h3>
@@ -546,6 +529,8 @@
     <!-- review section end -->
 
     <!-- cart section start -->
-    @livewire('cart')
+    <div id="cart_section">
+        @livewire('cart')
+    </div>
     
 </div>

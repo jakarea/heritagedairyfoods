@@ -27,14 +27,14 @@ class CategoryResource extends Resource
                 TextInput::make('name')
                     ->required()
                     ->live(debounce: 500)
-                    ->afterStateUpdated(fn ($state, callable $set) => $set('slug', Str::slug($state)))
+                    ->afterStateUpdated(fn($state, callable $set) => $set('slug', Str::slug($state)))
                     ->maxLength(55),
 
                 TextInput::make('slug')
                     ->required()
                     ->maxLength(255)
                     ->unique(Category::class, 'slug')
-                    ->disabled(fn ($record) => $record !== null)
+                    ->disabled(fn($record) => $record !== null)
                     ->dehydrated(),
 
                 Select::make('parent_id')
@@ -63,7 +63,8 @@ class CategoryResource extends Resource
                 Tables\Actions\DeleteAction::make()
                     ->requiresConfirmation()
                     ->modalHeading('Delete Category')
-                    ->modalDescription(fn ($record) => 
+                    ->modalDescription(
+                        fn($record) =>
                         $record->children()->exists()
                             ? 'This category has subcategories. Please delete them first before proceeding.'
                             : 'Are you sure you want to delete this category?'
@@ -76,27 +77,27 @@ class CategoryResource extends Resource
                                 ->body('This category has subcategories. Please delete them first.')
                                 ->warning()
                                 ->send();
-                            
+
                             $action->halt(); // Stop the action properly
                         }
                     })
-                    ->action(fn ($record) => $record->delete()),
+                    ->action(fn($record) => $record->delete()),
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make()
-                ->before(function ($records, $action) {
-                    $hasChildren = $records->filter(fn ($record) => $record->children()->exists())->isNotEmpty();
+                    ->before(function ($records, $action) {
+                        $hasChildren = $records->filter(fn($record) => $record->children()->exists())->isNotEmpty();
 
-                    if ($hasChildren) {
-                        Notification::make()
-                            ->title('Cannot Delete Categories')
-                            ->body('Some categories have subcategories. Please delete them first.')
-                            ->warning()
-                            ->send();
+                        if ($hasChildren) {
+                            Notification::make()
+                                ->title('Cannot Delete Categories')
+                                ->body('Some categories have subcategories. Please delete them first.')
+                                ->warning()
+                                ->send();
 
-                        $action->halt(); // Stop the bulk delete action
-                    }
-                })
+                            $action->halt(); // Stop the bulk delete action
+                        }
+                    })
             ]);
     }
 
@@ -104,6 +105,12 @@ class CategoryResource extends Resource
     {
         return [];
     }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false; // This hides the resource from the sidebar
+    }
+
 
     public static function getPages(): array
     {

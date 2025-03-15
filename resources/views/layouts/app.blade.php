@@ -4,14 +4,37 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="heritage dairy foods">
-  <meta property="og:title" content="Heritage Dairy Foods">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://www.heritagedairyfoods.com/">
-  <meta property="og:image" content="#">
-  <meta name="theme-color" content="#000000">
+  <!-- General Meta Tags -->
+  <title>Heritage Dairy Foods - Pure and Traditional Dairy Products</title>
+  <meta name="description"
+    content="Heritage Dairy Foods offers pure, natural, and chemical-free dairy products including traditional Bogura Doi, Ghee, and Premium Lachha Semai, directly from our farms to your table.">
+  <meta name="keywords"
+    content="Traditional Dairy Products, Pure Ghee, Bogura Doi, Lachha Semai, Probiotic Dairy, Healthy Dairy Products, Chemical-Free Dairy, Farm Fresh Dairy">
+  <meta name="author" content="Heritage Dairy Foods">
+  <link rel="canonical" href="https://heritagedairyfoods.com/">
 
-  <title>Heritage Dairy Foods - Home Page </title>
+  <!-- Open Graph Meta Tags -->
+  <meta property="og:title" content="Heritage Dairy Foods - Pure and Traditional Dairy Products">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:type" content="website">
+  <meta property="og:description"
+    content="Heritage Dairy Foods offers pure, natural, and chemical-free dairy products including traditional Bogura Doi, Ghee, and Premium Lachha Semai, directly from our farms to your table.">
+  <meta property="og:url" content="https://heritagedairyfoods.com/">
+  <meta property="og:site_name" content="Heritage Dairy Foods">
+  <meta property="og:image" content="/images/home-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:type" content="image/webp">
+
+  <!-- Twitter Meta Tags -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Heritage Dairy Foods - Pure and Traditional Dairy Products">
+  <meta name="twitter:description"
+    content="Heritage Dairy Foods offers pure, natural, and chemical-free dairy products including traditional Bogura Doi, Ghee, and Premium Lachha Semai, directly from our farms to your table.">
+  <meta name="twitter:image" content="/images/home-image.png">
+  <meta name="twitter:site" content="@HeritageDairyFoods">
+  <meta name="twitter:creator" content="@HeritageDairyFoods">
+
 
   <!-- tailwind CSS start -->
   <link rel="shortcut icon" href="/images/favicon.svg" type="image/x-icon">
@@ -32,7 +55,34 @@
   @livewireStyles
 </head>
 
+{{-- {/* Facebook Pixel Tracking Script */} --}}
+<script id="facebook-pixel" strategy="afterInteractive">
+  {`
+          !function(f,b,e,v,n,t,s)
+          {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+          n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+          if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+          n.queue=[];t=b.createElement(e);t.async=!0;
+          t.src=v;s=b.getElementsByTagName(e)[0];
+          s.parentNode.insertBefore(t,s)}(window, document,'script',
+          'https://connect.facebook.net/en_US/fbevents.js');
+          fbq('init', 'PIXEL_ID');
+          fbq('track', 'PageView');
+        `}
+</script>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-D2LF7C4Y59"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+
+gtag('config', 'G-D2LF7C4Y59');
+</script>
+
 <body class="anim">
+
 
   <!-- header section start -->
   @livewire('header')
@@ -47,6 +97,8 @@
   <!-- footer and cta section start -->
   @livewire('footer')
   <!-- footer and cta section end -->
+
+
 
   <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
