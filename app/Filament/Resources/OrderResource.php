@@ -74,7 +74,7 @@ class OrderResource extends Resource
                 TextColumn::make('order_number')->searchable()->label('Order ID'),
                 TextColumn::make('customer_name')->searchable()->sortable()->label('Name'),
                 TextColumn::make('customer_phone')->searchable()->label('Phone'),
-                TextColumn::make('customer_address')->searchable()->label('Address')->limit(50),
+                TextColumn::make('customer_address')->searchable()->label('Address')->limit(25),
                 TextColumn::make('total_price')->money('bdt')->sortable(),
                 TextColumn::make('status')
                     ->badge(fn($state) => match ($state) {

@@ -3,11 +3,13 @@
         <div class="w-full grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-y-4 xl:gap-x-8">
             @foreach ($products as $product)
             <!-- item -->
-            <div class="w-full bg-[#FCFCFC] border border-[#DFDFDF] p-5 rounded-[4px]">
+            <div class="w-full bg-[#FCFCFC] border border-[#DFDFDF] p-5 rounded-[4px] group anim">
                 <div class="bg-white text-center p-4 min-h-[225px] xl:h-[225px] flex justify-center items-center">
                     @if ($product['image'])
-                    <img src="{{ $product['image'] }}" alt="doi"
-                        class="w-full max-w-[50%] {{ $product['type'] == 'x-small' ? 'xl:!max-w-[40%]' : '' }} {{ $product['type'] == 'small' ? 'xl:max-w-[60%]' : 'xl:max-w-[80%]' }} object-contain">
+                    <a href="{{ url('product/'.$product['slug']) }}" class="block w-full h-full">
+                        <img src="{{ $product['image'] }}" alt="doi"
+                        class="w-full max-w-[50%] {{ $product['type'] == 'x-small' ? 'xl:!max-w-[40%]' : '' }} {{ $product['type'] == 'small' ? 'xl:max-w-[60%]' : 'xl:max-w-[80%]' }} object-contain mx-auto anim group-hover:scale-110">
+                    </a>
                     @else
                     <img src="/images/products/chini-pata.webp" alt="doi"
                         class="w-full max-w-[50%] xl:max-w-[60%] object-contain">
