@@ -7,7 +7,7 @@
                 <div class="bg-white text-center p-4 min-h-[225px] xl:h-[225px] flex justify-center items-center">
                     @if ($product['image'])
                     <img src="{{ $product['image'] }}" alt="doi"
-                        class="w-full max-w-[50%] {{ $product['type'] == 'small' ? 'xl:max-w-[60%]' : 'xl:max-w-[80%]' }} object-contain">
+                        class="w-full max-w-[50%] {{ $product['type'] == 'x-small' ? 'xl:!max-w-[40%]' : '' }} {{ $product['type'] == 'small' ? 'xl:max-w-[60%]' : 'xl:max-w-[80%]' }} object-contain">
                     @else
                     <img src="/images/products/chini-pata.webp" alt="doi"
                         class="w-full max-w-[50%] xl:max-w-[60%] object-contain">
