@@ -54,7 +54,7 @@
                                 <div class="relative">
                                     <img src="/images/green-leap.svg" alt="green-leap"
                                         class="hidden xl:flex absolute -left-2 -top-14">
-                                    <h1 class="font-bold text-4xl text-black xl:text-[72px] xl:leading-[100%]">বগুড়ার
+                                    <h1 class="font-bold text-4xl text-black xl:text-[72px] xl:leading-[110%]">বগুড়ার
                                         খাঁটি দানাদার <br class="hidden xl:block"> গাওয়া ঘি </h1>
                                     <img src="/images/red-flower.svg" alt="red-flower"
                                         class="hidden xl:flex absolute right-3 -top-6">
@@ -86,7 +86,7 @@
                                 <div class="relative">
                                     <img src="/images/green-leap.svg" alt="green-leap"
                                         class="hidden xl:flex absolute -left-2 -top-14">
-                                    <h1 class="font-bold text-4xl text-black xl:text-[72px] xl:leading-[130%]">বগুড়ার
+                                    <h1 class="font-bold text-4xl text-black xl:text-[72px] xl:leading-[110%]">বগুড়ার
                                         ঘিয়ে ভাজা স্পেশাল
                                         লাচ্ছা
                                         সেমাই </h1>
