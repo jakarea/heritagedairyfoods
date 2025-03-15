@@ -55,7 +55,7 @@
                                     <img src="/images/green-leap.svg" alt="green-leap"
                                         class="hidden xl:flex absolute -left-2 -top-14">
                                     <h1 class="font-bold text-4xl text-black xl:text-[72px] xl:leading-[100%]">বগুড়ার
-                                        খাঁটি গাওয়া ঘি </h1>
+                                        খাঁটি দানাদার <br class="hidden xl:block"> গাওয়া ঘি </h1>
                                     <img src="/images/red-flower.svg" alt="red-flower"
                                         class="hidden xl:flex absolute right-3 -top-6">
                                 </div>
