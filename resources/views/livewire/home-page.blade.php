@@ -218,7 +218,7 @@
                                 class="flex w-5 h-5 bg-second items-center justify-center rounded-full border-[4px] border-[#FFCBCB] shrink-0"></span>
                             <p class="text-base xl:text-xl font-normal text-third">ঐতিহ্যবাহী স্বাদ – পুরাতন রেসিপিতে
                                 তৈরি বগুড়ার আসল
-                                লাচ্ছা সেমাই</p>
+                                দই, ঘি,ক্ষীর ও লাচ্ছা সেমাই</p>
                         </li>
                     </ul>
                 </div>
@@ -347,7 +347,7 @@
                         <h5 class="text-lg xl:text-2xl font-semibold text-third">ঢাকায় সুপার-ফাস্ট ডেলিভারি</h5>
                         <p class="text-base xl:text-lg font-normal text-third mt-2 xl:mt-3.5">আমাদের নিবেদিত ডেলিভারি
                             রাইডারদের
-                            মাধ্যমে ১-২ ঘণ্টার মধ্যে আপনার অর্ডার পেয়ে যান।</p>
+                            মাধ্যমে <span class="font-inter">১-২</span> ঘণ্টার মধ্যে আপনার অর্ডার পেয়ে যান।</p>
                     </div>
                 </div>
                 <!-- step one -->
@@ -360,8 +360,8 @@
                     <div class="p-2.5">
                         <h5 class="text-lg xl:text-2xl font-semibold text-third">সারা দেশে ডেলিভারি উপলব্ধ</h5>
                         <p class="text-base xl:text-lg font-normal text-third mt-2 xl:mt-3.5">ঢাকার বাইরে অর্ডারের জন্য,
-                            আমরা পাথাও,
-                            স্টেডফাস্ট এবং অন্যান্য বিশ্বস্ত ডেলিভারি পার্টনারদের মাধ্যমে ১ দিনের মধ্যে শিপিং করি।</p>
+                            আমরা পাঠাও,
+                            স্টেডফাস্ট এবং অন্যান্য বিশ্বস্ত ডেলিভারি পার্টনারদের মাধ্যমে <span class="font-inter">১</span> দিনের মধ্যে শিপিং করি।</p>
                     </div>
                 </div>
                 <!-- step one -->
