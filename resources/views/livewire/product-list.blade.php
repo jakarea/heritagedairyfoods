@@ -31,10 +31,10 @@
                             </svg>
                         </a> 
 
-                        <button type="button" wire:click="addProductToCart({{ $product['id'] }})"
+                        {{-- <button type="button" wire:click="addProductToCart({{ $product['id'] }})"
                             class="flex items-center justify-center py-1 xl:py-3 px-4 w-[109px] gap-x-2 rounded-sm bg-second h-12 anim hover:bg-third">
                             <img src="/images/icons/shopping-cart.svg" alt="cart">
-                        </button>
+                        </button> --}}
 
                     </div>
                 </div>

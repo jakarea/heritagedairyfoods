@@ -63,6 +63,24 @@ Theme Primary Font Family: "Inter", serif;
     width: 55px!important;
 }
 
+.moving-down{
+    transition: all 0.3s linear;
+    animation: movingDown 2s ease-in-out infinite; 
+}
+
+@keyframes movingDown {
+    0% {
+        transform: translateX(-10px);
+    }
+    50% {
+        transform: translateX(10px);
+    }
+    100% {
+        transform: translateX(-10px);
+    }
+}
+
+
 /* custom responsive css */
 @media (min-width: 320px) and (max-width: 640px) {}
 

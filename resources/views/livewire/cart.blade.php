@@ -12,10 +12,10 @@
                 <h3
                     class="text-xl xl:text-[28px] font-semibold text-black border-b border-third border-opacity-20 pb-2 mb-4 xl:pb-4 xl:mb-6">
                     পছন্দ করুন
-                </h3> 
+                </h3>
 
                 <div class="grid grid-cols-1 xl:grid-cols-2 xl:gap-x-[250px] gap-y-3">
-                    @foreach ($products as $product)  
+                    @foreach ($products as $product)
 
                     <div
                         class="w-full border border-[#EAEAEA] p-3 xl:p-5 grid grid-cols-3 gap-x-3 xl:gap-x-5 items-center xl:flex anim hover:bg-[#F6F6F6] rounded-md">
@@ -34,7 +34,7 @@
                                 @endif
                             </div>
                         </label>
-                      
+
                         <div class="txt col-span-2">
                             <label for="cart-item-{{ $product['id'] }}"
                                 class="text-base block cursor-pointer xl:text-xl font-medium text-black">{{
@@ -49,55 +49,31 @@
                                         <button type="button" wire:click="decrementQuantity({{ $product['id'] }})"
                                             wire:loading.attr="disabled"
                                             wire:target="decrementQuantity({{ $product['id'] }})"
-                                            class="w-[30px] text-center h-full xl:w-[60px] xl:text-base relative inline-flex justify-center items-center">
+                                            class="w-[30px] text-center h-full xl:w-[60px] xl:text-base relative inline-flex justify-center items-center transition-all duration-150 ease-in-out transform active:scale-75 focus:ring-2 focus:ring-gray-300">
 
-                                            <span wire:loading.remove
-                                                wire:target="decrementQuantity({{ $product['id'] }})">
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                    stroke-width="1.5" stroke="currentColor" class="size-4">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14" />
-                                                </svg>
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                stroke-width="1.5" stroke="currentColor" class="size-4">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14" />
+                                            </svg>
 
-                                            </span>
-                                            <span wire:loading wire:target="decrementQuantity({{ $product['id'] }})"
-                                                class="">
-                                                <svg class="animate-spin h-5 w-5 text-gray-500"
-                                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                    <circle class="opacity-25" cx="12" cy="12" r="10"
-                                                        stroke="currentColor" stroke-width="4"></circle>
-                                                    <path class="opacity-75" fill="currentColor"
-                                                        d="M4 12a8 8 0 018-8v8H4z"></path>
-                                                </svg>
-                                            </span>
                                         </button>
+
 
                                         <input type="text" id="{{ $product['id'] }}" name="quantity"
                                             class="w-10 xl:w-[60px] h-[26px] xl:h-8 text-sm font-normal text-black xl:text-base text-center bg-white font-inter"
                                             value="{{ $this->getCartItemQuantity($product['id']) }}" readonly>
-                                        <button type="button" wire:click="incrementQuantity({{ $product['id'] }})"
+                                            <button type="button" wire:click="incrementQuantity({{ $product['id'] }})"
                                             wire:loading.attr="disabled"
                                             wire:target="incrementQuantity({{ $product['id'] }})"
-                                            class="w-[30px] text-center xl:w-[60px] xl:text-base relative inline-flex justify-center items-center">
-                                            <span wire:loading.remove
-                                                wire:target="incrementQuantity({{ $product['id'] }})">
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                    stroke-width="1.5" stroke="currentColor" class="size-4">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        d="M12 4.5v15m7.5-7.5h-15" />
-                                                </svg>
-
-                                            </span>
-                                            <span wire:loading wire:target="incrementQuantity({{ $product['id'] }})"
-                                                class="">
-                                                <svg class="animate-spin h-5 w-5 text-gray-500"
-                                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                    <circle class="opacity-25" cx="12" cy="12" r="10"
-                                                        stroke="currentColor" stroke-width="4"></circle>
-                                                    <path class="opacity-75" fill="currentColor"
-                                                        d="M4 12a8 8 0 018-8v8H4z"></path>
-                                                </svg>
-                                            </span>
+                                            class="w-[30px] text-center xl:w-[60px] xl:text-base relative inline-flex justify-center items-center transition-all duration-150 ease-in-out transform active:scale-75 focus:ring-2 focus:ring-gray-300">
+                                            
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                stroke-width="1.5" stroke="currentColor" class="size-4">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                            </svg>
+                                        
                                         </button>
+                                        
                                     </div>
                                 </div>
                                 <div>
@@ -206,12 +182,7 @@
                         @if($product)
                         <tr>
                             <td class="py-2">
-                                <div class="flex items-center gap-x-3 xl:gap-x-5">
-                                    <button type="button" 
-                                    wire:click="removeFromCart({{ $product['id'] }})"
-                                    class="bg-red-500 text-white w-5 h-5 flex justify-center items-center">
-                                        X
-                                    </button>
+                                <div class="flex items-center gap-x-3 xl:gap-x-5"> 
                                     <div
                                         class="w-[105px] h-[95px] border border-[#EAEAEA] flex justify-center items-center rounded-md">
                                         @if ($product['image'])
@@ -237,7 +208,8 @@
                         @else
                         <tr>
                             <td colspan="2">
-                                <p class="text-sm xl:text-base font-semibold text-red-500 text-center">কার্টে কোন পণ্য নেই </p>
+                                <p class="text-sm xl:text-base font-semibold text-red-500 text-center">কার্টে কোন পণ্য
+                                    নেই </p>
                             </td>
                         </tr>
                         @endif
@@ -303,17 +275,16 @@
                     </div>
                     <!-- delivery note -->
                     <div class="text-start">
-                        <p class="text-xs xl:text-sm font-normal text-black">আপনার ব্যক্তিগত তথ্য আপনার অর্ডার
-                            প্রক্রিয়া করতে, এই
-                            ওয়েবসাইটে আপনার অভিজ্ঞতা সমর্থন করতে এবং আমাদের গোপনীয়তা নীতিতে বর্ণিত অন্যান্য উদ্দেশ্যে
-                            ব্যবহৃত হবে !
+                        <p class="text-xs xl:text-sm font-normal text-black">আপনার ব্যক্তিগত তথ্য আপনার অর্ডার প্রক্রিয়া
+                            করতে, এই ওয়েবসাইটে আপনার ব্যবহার অভিজ্ঞতা উন্নত করতে এবং আমাদের গোপনীয়তা নীতিতে উল্লেখিত
+                            অন্যান্য উদ্দেশ্যে ব্যবহার করা হতে পারে !
                         </p>
                     </div>
                     <div class="text-start mt-6">
                         <button type="submit"
                             class="bg-second text-white text-sm font-semibold py-4 px-4 rounded-md anim hover:bg-third w-full block xl:text-4xl"
                             wire:loading.attr="disabled" wire:target="submit">
- 
+
                             <span wire:loading.remove>অর্ডার করুন</span>
                             <span wire:loading>অর্ডার গ্রহন করা হচ্ছে ...</span>
                         </button>
