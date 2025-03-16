@@ -95,9 +95,9 @@ class OrderResource extends Resource
                         ->icon('heroicon-o-currency-dollar')
                         ->color('info')
                         ->url(fn($record) => url('admin/orders/details', ['id' => $record->id])),
-                    ViewAction::make(),
+                    // ViewAction::make(),
                     EditAction::make(),
-                    DeleteAction::make(),
+                    // DeleteAction::make(),
                 ]),
             ])
             ->filters([

@@ -13,11 +13,8 @@
                     <a target="_blank" href="https://api.whatsapp.com/send?phone=01711798678" aria-label='whatsapp'
                         class="bg-white text-second text-sm font-semibold py-3 px-6 rounded-md anim hover:bg-third xl:text-xl inline-flex items-center gap-x-3">
                         বিস্তারিত জানতে মেসেজ করুন
-                        <svg width="24" height="25" viewBox="0 0 24 25" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M13.5 5.17383L21 12.6738M21 12.6738L13.5 20.1738M21 12.6738H3" stroke="#B11116"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                        </svg>
-
+                        <img
+                            src="/images/icons/whatsapp-icon-red.svg" alt="arrow" class="hidden xl:inline w-6 text-white fill-white">
                     </a>
                 </div>
             </div>
