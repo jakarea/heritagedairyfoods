@@ -21,7 +21,7 @@
                     <a target="_blank" href="https://api.whatsapp.com/send?phone=01711798678" aria-label='whatsapp'
                         class="bg-second text-white text-sm font-semibold py-2 px-4 rounded-md anim hover:bg-third xl:text-xl xl:py-2.5 xl:px-6 inline-flex items-center gap-x-2">
                         <span class="hidden xl:inline">বিস্তারিত জানতে</span> বার্তা পাঠান <img
-                            src="/images/icons/arrow-right.svg" alt="arrow" class="hidden xl:inline">
+                            src="/images/icons/whatsapp-icon.svg" alt="arrow" class="hidden xl:inline w-6 text-white fill-white">
                     </a>
                 </div>
             </div>
