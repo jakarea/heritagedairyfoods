@@ -7,11 +7,18 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
+use sms_net_bd\SMS;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Mpdf\Mpdf;
+use App\Services\NotificationService;
+
 
 class Cart extends Component
 {
     protected $listeners = ['addToCartEvent' => 'addToCart'];
+    protected $notificationService;
 
     public $products = [];
     public $cartItems = [];
@@ -29,7 +36,12 @@ class Cart extends Component
     protected $rules = [
         'name' => 'required|string|max:255',
         'address' => 'required|string|max:255',
-        'phone_number' => 'required|regex:/^\+?\d{2,20}$/',
+        'phone_number' => [
+            'required',
+            'regex:/^(\+88)?(011|012|013|014|015|016|017|018|019)\d{8,12}$/',
+            'max:15', // Maximum length of 15 characters
+            'not_regex:/[-_]/', // Disallow dash (-) and underscore (_)
+        ],
         'shiping_zone' => 'required|string',
     ];
 
@@ -48,13 +60,17 @@ class Cart extends Component
         'shiping_zone.required' => 'কোথায় ডেলিভেরি পেতে চান',
     ];
 
+    public function __construct()
+    {
+        $this->notificationService = new NotificationService();
+    }
+
     public function mount()
     {
         $this->sessionId = Session::getId();
         $this->loadProducts();
         $this->getCartId();
         $this->updateCart();
- 
     }
 
     private function loadProducts()
@@ -63,7 +79,13 @@ class Cart extends Component
 
         if (file_exists($jsonPath)) {
             $jsonContent = file_get_contents($jsonPath);
-            $this->products = json_decode($jsonContent, true);
+            $products = json_decode($jsonContent, true);
+
+            foreach ($products as $product) {
+                $newProduct[$product['id']] = $product;
+            }
+
+            $this->products = $newProduct;
         }
     }
 
@@ -79,13 +101,13 @@ class Cart extends Component
             ]);
         } else {
             $cartId = $cart->id;
-        } 
+        }
         return $cartId;
     }
 
     public function toggleCart($productId, $isChecked)
-    {  
-        
+    {
+
         if ($isChecked) {
             // Add the product to the cart
             $this->addToCart($productId);
@@ -95,19 +117,19 @@ class Cart extends Component
         }
 
         // Optionally update the cart display or total after adding/removing
-        $this->updateCart(); 
+        $this->updateCart();
     }
 
     public function isProductInCart()
     {
-        
+
         $cartId = $this->getCartId();
 
         // Check if the product exists in the cart
         $this->isProductInCarts  = DB::table('cart_items')
-        ->where('cart_id', $cartId)
-        ->pluck('product_id')
-        ->toArray(); 
+            ->where('cart_id', $cartId)
+            ->pluck('product_id')
+            ->toArray();
     }
 
     public function addToCart($productId)
@@ -152,7 +174,7 @@ class Cart extends Component
             ->where('product_id', $productId)
             ->delete();
 
-        $this->updateCart(); 
+        $this->updateCart();
     }
 
     private function getProductById($productId)
@@ -174,7 +196,6 @@ class Cart extends Component
             ->get();
 
         $this->isProductInCart();
-
     }
 
     public function incrementQuantity($productId)
@@ -311,7 +332,6 @@ class Cart extends Component
         // Calculate total price
         $this->total_price = $this->calculateTotalPrice();
 
-
         try {
             DB::beginTransaction();
 
@@ -331,6 +351,8 @@ class Cart extends Component
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
+
+            $order = DB::table('orders')->where('id', $orderId)->first();
 
             // Insert order items
             $orderItems = $cartItems->map(function ($cartItem) use ($orderId) {
@@ -352,26 +374,36 @@ class Cart extends Component
             }
 
             // Clear the cart
-            $this->clearCart(); 
+            $this->clearCart();
             $this->updateCart();
-            
-            DB::commit();
- 
-            // Reset form fields
-            $this->reset(['name', 'address', 'phone_number', 'shiping_zone', 'total_price', 'shipingValue']);
 
-            // Redirect to the order page
+            DB::commit();
+
             session()->flash('success', 'আপনার অর্ডার সফলভাবে গ্রহন করা হয়েছে, অর্ডার নাম্বার ' . $orderNumber);
 
-            return $this->redirect('/');    
+            // send sms
+            $orderStatusID = "Your Order ID #{$orderNumber}\n";
+            $message = $orderStatusID ."Your order has been successfully placed! We’ll notify you once it’s being processed. - Heritage Dairy Foods";
 
+            $this->notificationService->sendSms($this->phone_number, $message);
 
+            // make array of array from array of object
+            $orderItems = collect($orderItems)->map(function ($item) {
+                return (object) $item;
+            })->toArray();
+
+            // send email
+            $this->notificationService->sendEmail('New Order Placed #' . $orderNumber, $order, $orderItems);
+            // Reset form fields
+            $this->reset(['name', 'address', 'phone_number', 'shiping_zone', 'total_price', 'shipingValue']);
+            // Redirect to the order page
+            return $this->redirect('/');
         } catch (\Exception $e) {
             DB::rollBack();
-            session()->flash('error', 'অর্ডার প্রদান করতে সমস্যা হচ্ছে' .$e->getMessage());
+            // $e->getMessage();
+            session()->flash('error', 'অর্ডার প্রদান করতে সমস্যা হচ্ছে');
         }
     }
-
 
     public function render()
     {

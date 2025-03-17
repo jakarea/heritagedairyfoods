@@ -7,4 +7,4 @@ Route::get('/', function () {
     return view('layouts.app', ['component' => 'home-page']);
 });
 
-Route::get('/product/{slug}', [ProductController::class, 'productDetails']);
+Route::get('/product/{slug}', [ProductController::class, 'productDetails']); 
