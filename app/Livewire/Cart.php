@@ -7,7 +7,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
+use sms_net_bd\SMS;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Mpdf\Mpdf;
+use App\Services\NotificationService;
+
 
 class Cart extends Component
 {
@@ -29,7 +35,7 @@ class Cart extends Component
     protected $rules = [
         'name' => 'required|string|max:255',
         'address' => 'required|string|max:255',
-        'phone_number' => 'required|regex:/^\+?\d{2,20}$/',
+        'phone_number' => 'required|regex:/^\+?\d{8,20}$/',
         'shiping_zone' => 'required|string',
     ];
 
@@ -54,7 +60,6 @@ class Cart extends Component
         $this->loadProducts();
         $this->getCartId();
         $this->updateCart();
- 
     }
 
     private function loadProducts()
@@ -63,7 +68,13 @@ class Cart extends Component
 
         if (file_exists($jsonPath)) {
             $jsonContent = file_get_contents($jsonPath);
-            $this->products = json_decode($jsonContent, true);
+            $products = json_decode($jsonContent, true);
+
+            foreach ($products as $product) {
+                $newProduct[$product['id']] = $product;
+            }
+
+            $this->products = $newProduct;
         }
     }
 
@@ -79,13 +90,13 @@ class Cart extends Component
             ]);
         } else {
             $cartId = $cart->id;
-        } 
+        }
         return $cartId;
     }
 
     public function toggleCart($productId, $isChecked)
-    {  
-        
+    {
+
         if ($isChecked) {
             // Add the product to the cart
             $this->addToCart($productId);
@@ -95,19 +106,19 @@ class Cart extends Component
         }
 
         // Optionally update the cart display or total after adding/removing
-        $this->updateCart(); 
+        $this->updateCart();
     }
 
     public function isProductInCart()
     {
-        
+
         $cartId = $this->getCartId();
 
         // Check if the product exists in the cart
         $this->isProductInCarts  = DB::table('cart_items')
-        ->where('cart_id', $cartId)
-        ->pluck('product_id')
-        ->toArray(); 
+            ->where('cart_id', $cartId)
+            ->pluck('product_id')
+            ->toArray();
     }
 
     public function addToCart($productId)
@@ -152,7 +163,7 @@ class Cart extends Component
             ->where('product_id', $productId)
             ->delete();
 
-        $this->updateCart(); 
+        $this->updateCart();
     }
 
     private function getProductById($productId)
@@ -174,7 +185,6 @@ class Cart extends Component
             ->get();
 
         $this->isProductInCart();
-
     }
 
     public function incrementQuantity($productId)
@@ -285,6 +295,82 @@ class Cart extends Component
         DB::table('cart_items')->where('cart_id', $mainCart->id)->delete();
     }
 
+    // send sms
+    public function sendSms($recipient, $message)
+    {
+        $apiKey = config('sms.api_key');
+        $apiUrl = config('sms.api_url');
+
+        $response = Http::get($apiUrl, [
+            'api_key' => $apiKey,
+            'to' => $recipient,
+            'msg' => $message,
+        ]);
+
+        // Log the API response
+        Log::info('SMS API Response', [
+            'status' => $response->status(),
+            'body' => $response->body(),
+        ]);
+    }
+
+    public function sendEmail($subject, $order, $orderItems)
+    {
+        // Convert orderItems from an array of arrays to an array of objects
+        $orderItems = collect($orderItems)->map(function ($item) {
+            return (object) $item;
+        })->toArray();
+
+        // Create the email body
+        $body = [
+            'order' => $order,
+            'orderItems' => $orderItems,
+            'products' => $this->products,
+        ];
+
+        $mail = env('RECIPENT_EMAIL_ADDRESS', 'heritagedairyfoods@gmail.com');
+
+        // Load mPDF
+        $mpdf = new \Mpdf\Mpdf([
+            'default_font' => 'nikosh',
+            'mode' => 'utf-8',
+            'margin_top' => 10,
+            'margin_buttom' => 10,
+            'format' => 'A4',
+            'fontdata' => [
+                'nikosh' => [
+                    'R' => 'Nikosh.ttf',
+                    'B' => 'Nikosh.ttf',
+                ]
+            ]
+        ]);
+
+        $mpdf->SetFont('nikosh');
+
+        // Create the PDF output
+        $pdfOutput = view('emails.order-mail-attachment', $body)->render();
+        $mpdf->WriteHTML($pdfOutput);
+
+        // Save the PDF file to a variable
+        $pdfOutput = $mpdf->Output('', 'S');
+
+        // Send the email with the attached PDF
+        Mail::send('emails.order-mail-attachment', $body, function ($message) use ($mail, $subject, $pdfOutput, $order) {
+            $message->to($mail);
+            $message->subject($subject);
+            $message->attachData($pdfOutput, 'order-' . $order->order_number . '-' . $order->customer_name . '.pdf', [
+                'mime' => 'application/pdf'
+            ]);
+        });
+
+        // Log email details
+        Log::info('Email Sent', [
+            'recipient' => $mail,
+            'subject' => $subject,
+            'attachment' => 'order-' . $order->order_number . '-' . $order->customer_name . '.pdf'
+        ]);
+    }
+
     public function submit()
     {
         // Validate user input
@@ -311,7 +397,6 @@ class Cart extends Component
         // Calculate total price
         $this->total_price = $this->calculateTotalPrice();
 
-
         try {
             DB::beginTransaction();
 
@@ -331,6 +416,8 @@ class Cart extends Component
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
+
+            $order = DB::table('orders')->where('id', $orderId)->first();
 
             // Insert order items
             $orderItems = $cartItems->map(function ($cartItem) use ($orderId) {
@@ -352,23 +439,25 @@ class Cart extends Component
             }
 
             // Clear the cart
-            $this->clearCart(); 
+            $this->clearCart();
             $this->updateCart();
-            
-            DB::commit();
- 
-            // Reset form fields
-            $this->reset(['name', 'address', 'phone_number', 'shiping_zone', 'total_price', 'shipingValue']);
 
-            // Redirect to the order page
+            DB::commit();
+
             session()->flash('success', 'আপনার অর্ডার সফলভাবে গ্রহন করা হয়েছে, অর্ডার নাম্বার ' . $orderNumber);
 
-            return $this->redirect('/');    
-
-
+            // send sms
+            $this->sendSms($this->phone_number, 'আপনার অর্ডার সফলভাবে গ্রহন করা হয়েছে, অর্ডার নাম্বার ' . $orderNumber);
+            // send email
+            $this->sendEmail('New Order Placed #' . $orderNumber, $order, $orderItems);
+            // Reset form fields
+            $this->reset(['name', 'address', 'phone_number', 'shiping_zone', 'total_price', 'shipingValue']);
+            // Redirect to the order page
+            return $this->redirect('/');
         } catch (\Exception $e) {
             DB::rollBack();
-            session()->flash('error', 'অর্ডার প্রদান করতে সমস্যা হচ্ছে' .$e->getMessage());
+            // $e->getMessage();
+            session()->flash('error', 'অর্ডার প্রদান করতে সমস্যা হচ্ছে');
         }
     }
 
