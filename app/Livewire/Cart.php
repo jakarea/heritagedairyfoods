@@ -38,8 +38,9 @@ class Cart extends Component
         'address' => 'required|string|max:255',
         'phone_number' => [
             'required',
-            'regex:/^(\+88)?(011|012|013|014|015|016|017|018|019)\d{8,12}$/', // 8 to 12 digits after prefix
-            'max:15' // Maximum length of 15 characters
+            'regex:/^(\+88)?(011|012|013|014|015|016|017|018|019)\d{8,12}$/',
+            'max:15', // Maximum length of 15 characters
+            'not_regex:/[-_]/', // Disallow dash (-) and underscore (_)
         ],
         'shiping_zone' => 'required|string',
     ];
@@ -381,14 +382,17 @@ class Cart extends Component
             session()->flash('success', 'আপনার অর্ডার সফলভাবে গ্রহন করা হয়েছে, অর্ডার নাম্বার ' . $orderNumber);
 
             // send sms
-            $this->notificationService->sendSms($this->phone_number, 'আপনার অর্ডার সফলভাবে গ্রহন করা হয়েছে, অর্ডার নাম্বার ' . $orderNumber);
-            // send email
+            $orderStatusID = "Your Order ID #{$orderNumber}\n";
+            $message = $orderStatusID ."Your order has been successfully placed! We’ll notify you once it’s being processed. - Heritage Dairy Foods";
+
+            $this->notificationService->sendSms($this->phone_number, $message);
 
             // make array of array from array of object
             $orderItems = collect($orderItems)->map(function ($item) {
                 return (object) $item;
             })->toArray();
 
+            // send email
             $this->notificationService->sendEmail('New Order Placed #' . $orderNumber, $order, $orderItems);
             // Reset form fields
             $this->reset(['name', 'address', 'phone_number', 'shiping_zone', 'total_price', 'shipingValue']);
