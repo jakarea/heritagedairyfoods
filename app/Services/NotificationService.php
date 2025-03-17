@@ -1,5 +1,7 @@
 <?php
 
+namespace App\Services;
+
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -52,10 +54,6 @@ class NotificationService
 
     public function sendEmail($subject, $order, $orderItems)
     {
-        // Convert orderItems from an array of arrays to an array of objects
-        $orderItems = collect($orderItems)->map(function ($item) {
-            return (object) $item;
-        })->toArray();
 
         // Create the email body
         $body = [

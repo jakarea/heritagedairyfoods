@@ -18,6 +18,7 @@ use App\Services\NotificationService;
 class Cart extends Component
 {
     protected $listeners = ['addToCartEvent' => 'addToCart'];
+    protected $notificationService;
 
     public $products = [];
     public $cartItems = [];
@@ -35,7 +36,11 @@ class Cart extends Component
     protected $rules = [
         'name' => 'required|string|max:255',
         'address' => 'required|string|max:255',
-        'phone_number' => 'required|regex:/^\+?\d{8,20}$/',
+        'phone_number' => [
+            'required',
+            'regex:/^(\+88)?(011|012|013|014|015|016|017|018|019)\d{8,12}$/', // 8 to 12 digits after prefix
+            'max:15' // Maximum length of 15 characters
+        ],
         'shiping_zone' => 'required|string',
     ];
 
@@ -53,6 +58,11 @@ class Cart extends Component
 
         'shiping_zone.required' => 'কোথায় ডেলিভেরি পেতে চান',
     ];
+
+    public function __construct()
+    {
+        $this->notificationService = new NotificationService();
+    }
 
     public function mount()
     {
@@ -295,82 +305,6 @@ class Cart extends Component
         DB::table('cart_items')->where('cart_id', $mainCart->id)->delete();
     }
 
-    // send sms
-    public function sendSms($recipient, $message)
-    {
-        $apiKey = config('sms.api_key');
-        $apiUrl = config('sms.api_url');
-
-        $response = Http::get($apiUrl, [
-            'api_key' => $apiKey,
-            'to' => $recipient,
-            'msg' => $message,
-        ]);
-
-        // Log the API response
-        Log::info('SMS API Response', [
-            'status' => $response->status(),
-            'body' => $response->body(),
-        ]);
-    }
-
-    public function sendEmail($subject, $order, $orderItems)
-    {
-        // Convert orderItems from an array of arrays to an array of objects
-        $orderItems = collect($orderItems)->map(function ($item) {
-            return (object) $item;
-        })->toArray();
-
-        // Create the email body
-        $body = [
-            'order' => $order,
-            'orderItems' => $orderItems,
-            'products' => $this->products,
-        ];
-
-        $mail = env('RECIPENT_EMAIL_ADDRESS', 'heritagedairyfoods@gmail.com');
-
-        // Load mPDF
-        $mpdf = new \Mpdf\Mpdf([
-            'default_font' => 'nikosh',
-            'mode' => 'utf-8',
-            'margin_top' => 10,
-            'margin_buttom' => 10,
-            'format' => 'A4',
-            'fontdata' => [
-                'nikosh' => [
-                    'R' => 'Nikosh.ttf',
-                    'B' => 'Nikosh.ttf',
-                ]
-            ]
-        ]);
-
-        $mpdf->SetFont('nikosh');
-
-        // Create the PDF output
-        $pdfOutput = view('emails.order-mail-attachment', $body)->render();
-        $mpdf->WriteHTML($pdfOutput);
-
-        // Save the PDF file to a variable
-        $pdfOutput = $mpdf->Output('', 'S');
-
-        // Send the email with the attached PDF
-        Mail::send('emails.order-mail-attachment', $body, function ($message) use ($mail, $subject, $pdfOutput, $order) {
-            $message->to($mail);
-            $message->subject($subject);
-            $message->attachData($pdfOutput, 'order-' . $order->order_number . '-' . $order->customer_name . '.pdf', [
-                'mime' => 'application/pdf'
-            ]);
-        });
-
-        // Log email details
-        Log::info('Email Sent', [
-            'recipient' => $mail,
-            'subject' => $subject,
-            'attachment' => 'order-' . $order->order_number . '-' . $order->customer_name . '.pdf'
-        ]);
-    }
-
     public function submit()
     {
         // Validate user input
@@ -447,9 +381,15 @@ class Cart extends Component
             session()->flash('success', 'আপনার অর্ডার সফলভাবে গ্রহন করা হয়েছে, অর্ডার নাম্বার ' . $orderNumber);
 
             // send sms
-            $this->sendSms($this->phone_number, 'আপনার অর্ডার সফলভাবে গ্রহন করা হয়েছে, অর্ডার নাম্বার ' . $orderNumber);
+            $this->notificationService->sendSms($this->phone_number, 'আপনার অর্ডার সফলভাবে গ্রহন করা হয়েছে, অর্ডার নাম্বার ' . $orderNumber);
             // send email
-            $this->sendEmail('New Order Placed #' . $orderNumber, $order, $orderItems);
+
+            // make array of array from array of object
+            $orderItems = collect($orderItems)->map(function ($item) {
+                return (object) $item;
+            })->toArray();
+
+            $this->notificationService->sendEmail('New Order Placed #' . $orderNumber, $order, $orderItems);
             // Reset form fields
             $this->reset(['name', 'address', 'phone_number', 'shiping_zone', 'total_price', 'shipingValue']);
             // Redirect to the order page
@@ -460,7 +400,6 @@ class Cart extends Component
             session()->flash('error', 'অর্ডার প্রদান করতে সমস্যা হচ্ছে');
         }
     }
-
 
     public function render()
     {

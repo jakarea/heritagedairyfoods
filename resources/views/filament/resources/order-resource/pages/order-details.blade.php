@@ -115,17 +115,25 @@
         </div>
         <!-- Payment and Date Info -->
         <div class="mt-6 flex justify-start gap-x-3 items-center">
+            <button type="button" style="background: #ccc" wire:click="generatePdf()"
+                class="text-black text-sm font-semibold py-2 px-6 rounded-md anim hover:bg-third">
+                Download
+            </button>
             <button type="button" onclick="window.print();" style="background: #ccc"
                 class="text-black text-sm font-semibold py-2 px-6 rounded-md anim hover:bg-third">
                 Print
             </button>
-            <button type="button" style="background: #ddd" wire:click="sendEmail('Order Details Updated')"
+            <button type="button" style="background: #ddd" wire:click="sendOrderUpdateEmail()"
                 class="text-black text-sm font-semibold py-2 px-6 rounded-md anim hover:bg-third">
                 Email
+            </button>
+            <button type="button" style="background: #ddd" wire:click="sendOrderUpdateSms()"
+                class="text-black text-sm font-semibold py-2 px-6 rounded-md anim hover:bg-third">
+                SMS
             </button>
         </div>
     </div>
 
     <!-- Invoice Form for Dynamic Data -->
 
-</x-filament-panels::page>
+</x-filament-panels::page> 

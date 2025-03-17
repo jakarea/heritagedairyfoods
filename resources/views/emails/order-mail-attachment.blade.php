@@ -63,8 +63,7 @@
                         <td style="padding: 12px; border: 1px solid #ddd; text-align: center;">{{ $key + 1 }}</td>
                         <td style="padding: 12px; border: 1px solid #ddd;">
                             {{-- Check if the product exists --}}
-                            {{ isset($products[$orderItem->product_id]) ? $products[$orderItem->product_id]['name'] :
-                            'Product Not Found' }}
+                            {{ isset($products[$orderItem->product_id]) ? $products[$orderItem->product_id]['name'] : 'Product not found' }}
                         </td>
                         <td style="padding: 12px; border: 1px solid #ddd; text-align: center;">{{ $orderItem->quantity
                             }}</td>
