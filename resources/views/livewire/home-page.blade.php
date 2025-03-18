@@ -100,6 +100,9 @@
                                 </a>
                             </div>
                             <div class="order-1 relative xl:order-2 xl:text-end">
+                                <div class="absolute bg-five text-center px-4 py-1 -top-4 right-0 flex justify-center items-center">
+                                    <p class="font-semibold text-first text-base xl:text-lg">শীঘ্রই আসছে</p>
+                                </div>
                                 <img src="/images/doi.webp" alt="doi"
                                     class="mx-auto max-w-[90%] xl:max-w-[98%] xl:ml-auto xl:mx-0">
                             </div>
@@ -108,10 +111,8 @@
                 </section>
             </div>
             <!-- slider -->
-           
         </div>
         <div class="swiper-pagination"></div>
-
     </div>
     <!-- hero section -->
 
