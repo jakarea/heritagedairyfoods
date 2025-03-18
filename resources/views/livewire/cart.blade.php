@@ -16,7 +16,7 @@
 
                 <div class="grid grid-cols-1 xl:grid-cols-2 xl:gap-x-[250px] gap-y-3">
                     @foreach ($products as $product)
-
+                    @if ($product['stock'] > 0)
                     <div
                         class="w-full border border-[#EAEAEA] p-3 xl:p-5 grid grid-cols-3 gap-x-3 xl:gap-x-5 items-center xl:flex anim hover:bg-[#F6F6F6] rounded-md">
                         <label for="cart-item-{{ $product['id'] }}"
@@ -85,6 +85,7 @@
                         </div>
                     </div>
                     <!-- item -->
+                    @endif
                     @endforeach
                 </div>
             </div>
