@@ -3,12 +3,19 @@
         <div class="w-full grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-y-4 xl:gap-x-8">
             @foreach ($products as $product)
             <!-- item -->
-            <div class="w-full bg-[#FCFCFC] border border-[#DFDFDF] p-5 rounded-[4px] group anim">
+            <div class="w-full bg-[#FCFCFC] border border-[#DFDFDF] p-5 rounded-[4px] group anim relative">
+                {{-- stock badge --}}
+                @if ($product['stock'] == 0)
+                <div class="absolute bg-five text-center px-4 py-1 top-0 left-0 flex justify-center items-center">
+                    <p class="font-semibold text-first text-base">শীঘ্রই আসছে</p>
+                </div>
+                @endif
+                {{-- stock badge --}}
                 <div class="bg-white text-center p-4 min-h-[225px] xl:h-[225px] flex justify-center items-center">
                     @if ($product['image'])
                     <a href="{{ url('product/'.$product['slug']) }}" class="block w-full h-full">
                         <img src="{{ $product['image'] }}" alt="doi"
-                        class="w-full max-w-[50%] {{ $product['type'] == 'x-small' ? 'xl:!max-w-[40%]' : '' }} {{ $product['type'] == 'small' ? 'xl:max-w-[60%]' : 'xl:max-w-[80%]' }} object-contain mx-auto anim group-hover:scale-110">
+                            class="w-full max-w-[50%] {{ $product['type'] == 'x-small' ? 'xl:!max-w-[40%]' : '' }} {{ $product['type'] == 'small' ? 'xl:max-w-[60%]' : 'xl:max-w-[80%]' }} object-contain mx-auto anim group-hover:scale-110">
                     </a>
                     @else
                     <img src="/images/products/chini-pata.webp" alt="doi"
@@ -31,7 +38,7 @@
                                 <path d="M13.5 4.5L21 12M21 12L13.5 19.5M21 12H3" stroke="currentColor"
                                     stroke-linecap="round" stroke-linejoin="round" />
                             </svg>
-                        </a> 
+                        </a>
 
                         {{-- <button type="button" wire:click="addProductToCart({{ $product['id'] }})"
                             class="flex items-center justify-center py-1 xl:py-3 px-4 w-[109px] gap-x-2 rounded-sm bg-second h-12 anim hover:bg-third">
@@ -42,7 +49,7 @@
                 </div>
             </div>
             <!-- item -->
-            @endforeach 
+            @endforeach
 
 
         </div>
