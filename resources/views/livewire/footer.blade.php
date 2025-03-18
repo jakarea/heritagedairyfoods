@@ -8,13 +8,13 @@
                 <div
                     class="text-center bg-[#00000066] absolute left-0 top-0 rounded-md px-2 py-3 h-full w-full xl:rounded-[20px] flex flex-col items-center justify-center">
                     <h2 class="text-white font-semibold text-lg xl:text-[36px] mb-2 xl:leading-[150%] xl:mb-5">সাধ ও ঐতিহ্যের সম্ভার – এখন <span class="font-inter">১০০</span>% খাঁটি দুধের পণ্য হাতের কাছেই! শুধুমাত্র <br
-                            class="hidden xl:block"> Heritage Dairy &
+                            class="hidden xl:block"> Heritage Dairy &amp;
                         Food Product-এ।</h2>
                     <a target="_blank" href="https://api.whatsapp.com/send?phone=01711798678" aria-label='whatsapp'
-                        class="bg-white text-second text-sm font-semibold py-3 px-6 rounded-md anim hover:bg-third xl:text-xl inline-flex items-center gap-x-3">
-                        বিস্তারিত জানতে মেসেজ করুন
+                        class="bg-white text-second text-sm font-semibold py-3 px-6 rounded-md anim hover:bg-five xl:text-xl inline-flex items-center gap-x-3">
                         <img
                             src="/images/icons/whatsapp-icon-red.svg" alt="arrow" class="hidden xl:inline w-6 text-white fill-white">
+                        হোয়াটস্যাপ করুন
                     </a>
                 </div>
             </div>
