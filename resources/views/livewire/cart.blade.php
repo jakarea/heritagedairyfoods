@@ -6,13 +6,20 @@
                     মোবাইল নম্বর
                     লিখে <br class="hidden xl:block">
                     "অর্ডার করুন" বাটনে ক্লিক করুন</h2>
+
+
             </div>
 
             <div class="mt-10 xl:mt-[100px]">
-                <h3
-                    class="text-xl xl:text-[28px] font-semibold text-black border-b border-third border-opacity-20 pb-2 mb-4 xl:pb-4 xl:mb-6">
-                    পছন্দ করুন
-                </h3>
+                <div
+                    class="flex flex-col xl:flex-row items-center justify-between border-b border-third border-opacity-20 pb-2 mb-4 xl:pb-4 xl:mb-6">
+                    <h3 class="text-xl xl:text-[28px] font-semibold text-black">
+                        পছন্দ করুন
+                    </h3>
+                    <p class="text-sm font-medium text-first xl:text-base">সারাদেশে হোম ডেলিভারি ফ্রি! <sup
+                            class="text-second text-xl">*</sup></p>
+                </div>
+
 
                 <div class="grid grid-cols-1 xl:grid-cols-2 xl:gap-x-[250px] gap-y-3">
                     @foreach ($products as $product)
@@ -62,18 +69,19 @@
                                         <input type="text" id="{{ $product['id'] }}" name="quantity"
                                             class="w-10 xl:w-[60px] h-[26px] xl:h-8 text-sm font-normal text-black xl:text-base text-center bg-white font-inter"
                                             value="{{ $this->getCartItemQuantity($product['id']) }}" readonly>
-                                            <button type="button" wire:click="incrementQuantity({{ $product['id'] }})"
+                                        <button type="button" wire:click="incrementQuantity({{ $product['id'] }})"
                                             wire:loading.attr="disabled"
                                             wire:target="incrementQuantity({{ $product['id'] }})"
                                             class="w-[30px] text-center xl:w-[60px] xl:text-base relative inline-flex justify-center items-center transition-all duration-150 ease-in-out transform active:scale-75 focus:ring-2 focus:ring-gray-300">
-                                            
+
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                                 stroke-width="1.5" stroke="currentColor" class="size-4">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    d="M12 4.5v15m7.5-7.5h-15" />
                                             </svg>
-                                        
+
                                         </button>
-                                        
+
                                     </div>
                                 </div>
                                 <div>
@@ -127,14 +135,15 @@
                             <div class="flex items-center gap-x-4">
                                 <div class="flex gap-x-2">
                                     <input type="radio" wire:model="shiping_zone" name="shiping_zone" id="inside_dhaka"
-                                        value="inside_dhaka" wire:change="shipingType(60)">
+                                        value="inside_dhaka">
+                                        {{-- wire:change="shipingType(0)" --}}
                                     <label for="inside_dhaka"
                                         class="text-sm xl:text-lg font-normal text-black block cursor-pointer">ঢাকার
                                         ভেতরে</label>
                                 </div>
                                 <div class="flex gap-x-2">
                                     <input type="radio" wire:model="shiping_zone" name="shiping_zone" id="outside_dhaka"
-                                        value="outside_dhaka" wire:change="shipingType(120)">
+                                        value="outside_dhaka">
                                     <label for="outside_dhaka"
                                         class="text-sm xl:text-lg font-normal text-black block cursor-pointer">ঢাকার
                                         বাইরে</label>
@@ -183,7 +192,7 @@
                         @if($product)
                         <tr>
                             <td class="py-2">
-                                <div class="flex items-center gap-x-3 xl:gap-x-5"> 
+                                <div class="flex items-center gap-x-3 xl:gap-x-5">
                                     <div
                                         class="w-[105px] h-[95px] border border-[#EAEAEA] flex justify-center items-center rounded-md">
                                         @if ($product['image'])
@@ -285,10 +294,10 @@
                         <button type="submit"
                             class="bg-second text-white text-sm font-semibold py-4 px-4 rounded-md anim hover:bg-third w-full block xl:text-4xl"
                             wire:loading.attr="disabled" wire:target="submit">
-
                             <span wire:loading.remove>অর্ডার করুন</span>
                             <span wire:loading>অর্ডার গ্রহন করা হচ্ছে ...</span>
                         </button>
+
                     </div>
                 </div>
             </form>

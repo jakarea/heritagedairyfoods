@@ -1,4 +1,10 @@
 <div>
+    {{-- home delivery free --}}
+    <div class="w-full bg-five py-1 fixed top-0 left-0 z-[9999]">
+        <p class="font-semibold text-sm xl:text-lg text-center text-first">সারাদেশে হোম ডেলিভারি ফ্রি!</p>
+    </div>
+    {{-- home delivery free --}}
+
     @if (session()->has('success'))
     <div class="w-full bg-green-600 py-2 xl:py-3">
         <div class="container text-center">
@@ -9,7 +15,7 @@
     </div>
     @endif
 
-    <header class="header-sec py-3 xl:py-3.5">
+    <header class="header-sec py-3 xl:py-3.5 mt-7 xl:mt-9">
         <div class="container">
             <div class="flex justify-between items-center flex-cosl xl:flex-row">
                 <div class="left">
