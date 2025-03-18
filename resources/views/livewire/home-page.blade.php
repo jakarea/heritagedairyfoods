@@ -28,8 +28,7 @@
                                     <img src="/images/red-flower.svg" alt="red-flower"
                                         class="hidden xl:flex absolute right-12 -top-6">
                                 </div>
-                                <p class="font-medium text-lg xl:text-4xl tracking-[5px] my-4 xl:mb-10">বগুড়ার এক
-                                    ঐতিহ্য!</p>
+                                <p class="font-medium text-lg xl:text-4xl tracking-[5px] my-4 xl:mb-10">বগুড়ার ঐতিহ্য!</p>
                                     <a href="#" onclick="scrollToSection('cart_section')"
                                     class="bg-second text-white text-sm font-semibold py-3 px-6 pr-4 rounded-md anim hover:bg-third xl:text-xl inline-flex items-center gap-x-4 shadow-second hover:shadow-none">
                                     অর্ডার করুন
@@ -63,8 +62,7 @@
                                     <img src="/images/red-flower.svg" alt="red-flower"
                                         class="hidden xl:flex absolute right-3 -top-6">
                                 </div>
-                                <p class="font-medium text-lg xl:text-4xl tracking-[5px] my-4 xl:mb-10">বগুড়ার এক
-                                    ঐতিহ্য!</p>
+                                <p class="font-medium text-lg xl:text-4xl tracking-[5px] my-4 xl:mb-10">বগুড়ার ঐতিহ্য!</p>
                                     <a href="#" onclick="scrollToSection('cart_section')"
                                     class="bg-second text-white text-sm font-semibold py-3 px-6 pr-4 rounded-md anim hover:bg-third xl:text-xl inline-flex items-center gap-x-4 shadow-second hover:shadow-none">
                                     অর্ডার করুন
@@ -94,8 +92,7 @@
                                     <img src="/images/red-flower.svg" alt="red-flower"
                                         class="hidden xl:flex absolute right-3 -top-6">
                                 </div>
-                                <p class="font-medium text-lg xl:text-4xl tracking-[5px] my-4 xl:mb-10">বগুড়ার স্বাদের
-                                    ঐতিহ্য!</p>
+                                <p class="font-medium text-lg xl:text-4xl tracking-[5px] my-4 xl:mb-10">বগুড়ার ঐতিহ্য!</p>
                                 <a href="#" onclick="scrollToSection('cart_section')"
                                     class="bg-second text-white text-sm font-semibold py-3 px-6 pr-4 rounded-md anim hover:bg-third xl:text-xl inline-flex items-center gap-x-4 shadow-second hover:shadow-none">
                                     অর্ডার করুন
