@@ -287,7 +287,7 @@ class Cart extends Component
     }
 
     public function shipingType($value)
-    {
+    { 
         $this->shipingValue = $value;
     }
 
@@ -308,6 +308,7 @@ class Cart extends Component
 
     public function submit()
     {
+        // dd('aaa');
         // Validate user input
         $validated = $this->validate();
 

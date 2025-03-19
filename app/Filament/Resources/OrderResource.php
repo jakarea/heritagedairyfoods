@@ -22,19 +22,24 @@ class OrderResource extends Resource
 {
     protected static ?string $model = Order::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-shopping-cart'; 
 
-    /** 🔹 Hide the "New Order" button */
-    protected static bool $canCreate = false;
+    public static function canCreate(): bool
+    {
+        return false;
+    }
 
     public static function form(Form $form): Form
     {
         return $form->schema([
-            Section::make('Order Details')->schema([
-                TextInput::make('id')->disabled()->hidden(),
+            Section::make('Customer Details')->schema([
                 TextInput::make('customer_name')->label('Customer Name'),
                 TextInput::make('customer_phone')->label('Phone'),
-                TextInput::make('customer_address')->label('Address'),
+                TextInput::make('customer_address')->label('Address')->columnSpanFull(),
+            ])->columns(2),
+
+            Section::make('Order Details')->schema([
+                TextInput::make('id')->disabled()->hidden(),
                 TextInput::make('order_number')->label('Order Number')->disabled(),
                 TextInput::make('total_price')->label('Total Price')->prefix('BDT'),
                 TextInput::make('shipping_cost')->label('Shipping Cost')->prefix('BDT'), 
@@ -62,7 +67,7 @@ class OrderResource extends Resource
                         'canceled' => 'Canceled',
                     ]), // Disable for viewing
                 TextInput::make('created_at')->label('Order time')->disabled(),
-            ]),
+            ])->columns(3),
         ]);
     }
 
