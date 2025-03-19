@@ -98,7 +98,8 @@
                     @endforeach
                     <tr>
                         <td colspan="4" class="border px-4 py-2 text-right"><strong>Subtotal</strong>:</td>
-                        <td class="border px-4 py-2 text-center">{{ number_format($order->total_price - $order->shipping_cost, 1) }} BDT</td>
+                        <td class="border px-4 py-2 text-center">{{ number_format($order->total_price -
+                            $order->shipping_cost, 1) }} BDT</td>
                     </tr>
                     <tr>
                         <td colspan="4" class="border px-4 py-2 text-right"><strong>Shipping cost</strong>:</td>
@@ -115,25 +116,58 @@
         </div>
         <!-- Payment and Date Info -->
         <div class="mt-6 flex justify-start gap-x-3 items-center">
-            <button type="button" style="background: #ccc" wire:click="generatePdf()"
-                class="text-black text-sm font-semibold py-2 px-6 rounded-md anim hover:bg-third">
-                Download
-            </button>
+            
             <button type="button" onclick="window.print();" style="background: #ccc"
                 class="text-black text-sm font-semibold py-2 px-6 rounded-md anim hover:bg-third">
                 Print
             </button>
+            <button type="button" style="background: #ccc" wire:click="generatePdf()" wire:loading.attr="disabled"
+                class="text-black text-sm font-semibold py-2 px-6 rounded-md anim hover:bg-third flex items-center gap-x-2">
+                <span wire:loading.remove wire:target="generatePdf">Download</span>
+                <span wire:loading wire:target="generatePdf" class="flex items-center gap-x-2">Downloading
+                    <svg class="w-3 h-3 animate-spin text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1">
+                        </circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 01-8 8z">
+                        </path>
+                    </svg>
+                </span>
+            </button>
+
             <button type="button" style="background: #ddd" wire:click="sendOrderUpdateEmail()"
-                class="text-black text-sm font-semibold py-2 px-6 rounded-md anim hover:bg-third">
-                Email
+                wire:loading.attr="disabled"
+                class="text-black text-sm font-semibold py-2 px-6 rounded-md anim hover:bg-third flex items-center gap-x-2">
+                <span wire:loading.remove wire:target="sendOrderUpdateEmail">Email</span>
+                <span wire:loading wire:target="sendOrderUpdateEmail" class="flex items-center gap-x-2">Sending
+                    <svg class="w-3 h-3 animate-spin text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1">
+                        </circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 01-8 8z">
+                        </path>
+                    </svg>
+                </span>
             </button>
+
             <button type="button" style="background: #ddd" wire:click="sendOrderUpdateSms()"
-                class="text-black text-sm font-semibold py-2 px-6 rounded-md anim hover:bg-third">
-                SMS
+                wire:loading.attr="disabled"
+                class="text-black text-sm font-semibold py-2 px-6 rounded-md anim hover:bg-third flex items-center gap-x-2">
+                <span wire:loading.remove wire:target="sendOrderUpdateSms">SMS</span>
+                <span wire:loading wire:target="sendOrderUpdateSms" class="flex items-center gap-x-2">Sending
+                    <svg class="w-3 h-3 animate-spin text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1">
+                        </circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 01-8 8z">
+                        </path>
+                    </svg>
+                </span>
             </button>
+
         </div>
     </div>
 
     <!-- Invoice Form for Dynamic Data -->
 
-</x-filament-panels::page> 
+</x-filament-panels::page>

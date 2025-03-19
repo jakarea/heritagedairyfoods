@@ -16,7 +16,7 @@
                     <h3 class="text-xl xl:text-[28px] font-semibold text-black">
                         পছন্দ করুন
                     </h3>
-                    <p class="text-sm font-medium text-first xl:text-base">সারাদেশে হোম ডেলিভারি ফ্রি! <sup
+                    <p class="text-sm font-medium text-first xl:text-base">এই রমজানে সারাদেশে হোম ডেলিভারি ফ্রি! <sup
                             class="text-second text-xl">*</sup></p>
                 </div>
 

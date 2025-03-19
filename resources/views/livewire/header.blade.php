@@ -1,7 +1,7 @@
 <div>
     {{-- home delivery free --}}
     <div class="w-full bg-five py-1 fixed top-0 left-0 z-[999]">
-        <p class="font-semibold text-sm xl:text-lg text-center text-first">সারাদেশে হোম ডেলিভারি ফ্রি!</p>
+        <p class="font-semibold text-sm xl:text-lg text-center text-first">এই রমজানে সারাদেশে হোম ডেলিভারি ফ্রি!</p>
     </div>
     {{-- home delivery free --}}
 
