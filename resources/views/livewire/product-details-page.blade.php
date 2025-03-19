@@ -95,13 +95,23 @@
                 <h3 class="text-second text-xl font-semibold xl:text-4xl my-2 xl:mb-8 xl:mt-4">{{
                     $product['video']['title'] }}</h3>
             </div>
-            <div class="w-full relative group anim">
-                <img src="/images/video-thumb-doi.webp" alt="video thumb"
-                    class="w-full h-full object-cover rounded-[10px]">
-                <a href="{{ $product['video']['url'] }}"
-                    class="absolute left-0 top-0 w-full h-full flex items-center justify-center anim group-hover:scale-125">
-                    <img src="/images/icons/play.svg" alt="play" class="max-w-[60px] xl:max-w-[100px]">
-                </a>
+            <div class="w-full relative group anim" id="video-container">
+                <div id="thumbnail">
+                    <img src="/images/video-thumb-doi.webp" alt="video thumb"
+                        class="w-full h-full object-cover rounded-[10px]">
+                    <a href="javascript:void(0);" onclick="playVideo()"
+                        class="absolute left-0 top-0 w-full h-full flex items-center justify-center anim group-hover:scale-125">
+                        <img src="/images/icons/play.svg" alt="play" class="max-w-[60px] xl:max-w-[100px]">
+                    </a>
+                </div>
+                <div id="video" class="hidden w-full h-full">
+                    <iframe id="youtube-iframe" width="100%" height="562" 
+                        src="" 
+                        title="YouTube video player" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen></iframe>
+                </div>
             </div>
             <div class="text-center mt-5 xl:mt-[30px]">
                 <p class="font-normal text-base xl:text-xl mb-3 xl:mb-5">{{ $product['video']['description'] }}
@@ -252,5 +262,23 @@
     @include('layouts.partials.product-not-found')
     @endif
 
+    <script>
+        function playVideo() {
+            const videoUrl = "{{ $product['video']['url'] }}"; // Ensure this contains a valid YouTube embed link 
+            const videoContainer = document.getElementById('video');
+            const thumbnail = document.getElementById('thumbnail');
+            const iframe = document.getElementById('youtube-iframe');
+    
+            // Set the YouTube embed link
+            iframe.src = videoUrl + "?autoplay=1"; // Add autoplay
+    
+            // Hide the thumbnail and show the video
+            thumbnail.style.display = 'none';
+            videoContainer.classList.remove('hidden');
+        }
+    </script>
+
+
+{{-- <iframe width="560" height="315" src="" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe> --}}
 
 </div>
