@@ -27,7 +27,14 @@
                     <h3
                         class="xl:mb-10 mb-6 text-base xl:text-xl font-normal text-first mt-3 xl:mt-5 flex items-center gap-x-4 xl:gap-x-5 justify-center">
                         <div><span class="font-inter">{{ $product['weight'] }}</span> গ্রাম </div>
-                        <div><span class="font-inter">{{ $product['price'] }}</span> ৳</div>
+                        <div>
+                            @isset($product['offer_price'])
+                            <span class="font-inter">{{ $product['offer_price'] }}</span>
+                            <s><span class="font-inter text-red-600">{{ $product['price'] }}</span></s> ৳
+                            @else
+                            <span class="font-inter">{{ $product['price'] }}</span> ৳
+                            @endisset
+                        </div>
                     </h3>
                     <div class="flex items-center justify-between gap-x-4 xl:gap-x-[23px]">
                         <a href="{{ url('product/'.$product['slug']) }}"
