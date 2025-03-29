@@ -70,7 +70,7 @@
                         <td style="padding: 12px; border: 1px solid #ddd; text-align: center;">
                             {{-- Check if price exists --}}
                             {{ isset($products[$orderItem->product_id]) ?
-                            number_format($products[$orderItem->product_id]['price'], 1) : '0.00' }} BDT
+                            number_format($products[$orderItem->product_id]['offer_price'] ?? $products[$orderItem->product_id]['price'], 1) : '0.00' }} BDT
                         </td>
                         <td style="padding: 12px; border: 1px solid #ddd; text-align: center;">{{
                             number_format($orderItem->price, 1) }} BDT</td>
