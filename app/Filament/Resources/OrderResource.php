@@ -75,7 +75,7 @@ class OrderResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('id')->sortable(),
+                // TextColumn::make('id')->sortable(),
                 TextColumn::make('order_number')->searchable()->label('Order ID'),
                 TextColumn::make('customer_name')->searchable()->sortable()->label('Name'),
                 TextColumn::make('customer_phone')->searchable()->label('Phone'),
