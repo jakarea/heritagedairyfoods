@@ -21,7 +21,7 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use App\Filament\Widgets\OrderStatusWidget;
-
+use Filament\Support\Enums\MaxWidth;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -30,8 +30,14 @@ class AdminPanelProvider extends PanelProvider
         return $panel
             ->default()
             ->id('admin')
+            ->font('Nunito')
             ->path('admin')
+            ->unsavedChangesAlerts()
+            ->brandName('Admission Expert') 
+            ->favicon(asset('images/favicon.png'))
+            ->maxContentWidth(MaxWidth::Full)
             ->login()
+            ->spa()
             ->colors([
                 'primary' => Color::Amber,
             ])
@@ -79,21 +85,21 @@ class AdminPanelProvider extends PanelProvider
             return []; // If the user is not logged in, show nothing
         }
 
-        $user = Auth::user();
-        $latestAttendance = Attendance::where('user_id', $user->id)->latest()->first();
+        // $user = Auth::user();
+        // $latestAttendance = Attendance::where('user_id', $user->id)->latest()->first();
 
-        $isOnBreak = $latestAttendance && $latestAttendance->break_in && !$latestAttendance->break_out;
-        $hasNotCheckedIn = !$latestAttendance || !$latestAttendance->check_in;
+        // $isOnBreak = $latestAttendance && $latestAttendance->break_in && !$latestAttendance->break_out;
+        // $hasNotCheckedIn = !$latestAttendance || !$latestAttendance->check_in;
 
-        if ($isOnBreak || $hasNotCheckedIn) {
-            return [
-                [
-                    'label' => 'Attendance',
-                    'url' => route('filament.admin.resources.attendances.index'),
-                    'icon' => 'heroicon-o-clock',
-                ],
-            ];
-        }
+        // if ($isOnBreak || $hasNotCheckedIn) {
+        //     return [
+        //         [
+        //             'label' => 'Attendance',
+        //             'url' => route('filament.admin.resources.attendances.index'),
+        //             'icon' => 'heroicon-o-clock',
+        //         ],
+        //     ];
+        // }
 
         // Normal navigation when user is checked in and break-out is done
         return [

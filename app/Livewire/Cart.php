@@ -148,7 +148,7 @@ class Cart extends Component
                 ->where('product_id', $productId)
                 ->update([
                     'quantity' => $cartItem->quantity + 1,
-                    'price' => ($cartItem->quantity + 1) * $this->getProductById($productId)['price'],
+                    'price' => ($cartItem->quantity + 1) * $this->getProductById($productId)['offer_price'] ?? $this->getProductById($productId)['price'],
                     'updated_at' => now(),
                 ]);
         } else {
@@ -156,7 +156,7 @@ class Cart extends Component
                 'cart_id' => $cartId,
                 'product_id' => $productId,
                 'quantity' => 1,
-                'price' => $this->getProductById($productId)['price'],
+                'price' => $this->getProductById($productId)['offer_price'] ?? $this->getProductById($productId)['price'],
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -210,7 +210,7 @@ class Cart extends Component
         if ($cartItem) {
             $product = $this->getProductById($productId);
             $newQuantity = $cartItem->quantity + 1;
-            $newPrice = $newQuantity * $product['price'];
+            $newPrice = $newQuantity * $product['offer_price'] ?? $product['price'];
 
             DB::table('cart_items')
                 ->where('cart_id', $cartId)
@@ -225,7 +225,7 @@ class Cart extends Component
                 'cart_id' => $cartId,
                 'product_id' => $productId,
                 'quantity' => 1,
-                'price' => $this->getProductById($productId)['price'],
+                'price' => $this->getProductById($productId)['offer_price'] ?? $this->getProductById($productId)['price'],
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);

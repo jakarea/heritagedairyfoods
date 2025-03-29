@@ -35,7 +35,6 @@
   <meta name="twitter:site" content="@HeritageDairyFoods">
   <meta name="twitter:creator" content="@HeritageDairyFoods">
 
-
   <!-- tailwind CSS start -->
   <link rel="shortcut icon" href="{{ asset('images/favicon.png') }}" type="image/x-icon">
 
