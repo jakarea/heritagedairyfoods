@@ -86,8 +86,8 @@
                                 </div>
                                 <div>
                                     <h5 class="text-sm xl:text-base font-normal text-black mb-2 xl:mb-2.5">মূল্য</h5>
-                                    <p class="text-sm xl:text-base font-normal text-black"><span class="font-inter">{{
-                                            $product['price'] }}</span> ৳</p>
+                                    <p class="text-sm xl:text-base font-normal text-black">
+                                        <span class="font-inter">{{ $product['offer_price'] ?? $product['price'] }} </span> ৳</p>
                                 </div>
                             </div>
                         </div>
