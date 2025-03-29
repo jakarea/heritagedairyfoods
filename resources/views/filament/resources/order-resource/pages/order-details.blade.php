@@ -91,8 +91,7 @@
                         <td class="border px-4 py-2 text-center">{{ $key + 1 }}</td>
                         <td class="border px-4 py-2">{{ $products[$orderItem->product_id]['name'] }}</td>
                         <td class="border px-4 py-2 text-center">{{ $orderItem->quantity }}</td>
-                        <td class="border px-4 py-2 text-center">{{
-                            number_format($products[$orderItem->product_id]['price'], 1) }} BDT</td>
+                        <td class="border px-4 py-2 text-center">{{ number_format($products[$orderItem->product_id]['offer_price'] ?? $products[$orderItem->product_id]['price'], 1) }} BDT</td>
                         <td class="border px-4 py-2 text-center">{{ number_format($orderItem->price, 1) }} BDT</td>
                     </tr>
                     @endforeach
