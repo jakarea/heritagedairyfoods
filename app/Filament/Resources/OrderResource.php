@@ -141,4 +141,9 @@ class OrderResource extends Resource
             'details' => Pages\OrderDetails::route('/details/{id}'),
         ];
     }
+
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
 }

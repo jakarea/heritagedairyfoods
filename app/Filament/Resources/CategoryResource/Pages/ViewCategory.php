@@ -4,10 +4,9 @@ namespace App\Filament\Resources\CategoryResource\Pages;
 
 use App\Filament\Resources\CategoryResource;
 use Filament\Actions;
-use Filament\Resources\Pages\CreateRecord;
+use Filament\Resources\Pages\ViewRecord;
 
-class CreateCategory extends CreateRecord
+class ViewCategory extends ViewRecord
 {
-    use \App\Traits\RedirectIndex; 
     protected static string $resource = CategoryResource::class;
 }

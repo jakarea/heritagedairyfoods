@@ -22,6 +22,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use App\Filament\Widgets\OrderStatusWidget;
 use Filament\Support\Enums\MaxWidth;
+use App\Filament\Pages\Settings;
+use Filament\Navigation\MenuItem;
+use Filament\Pages\Auth\EditProfile;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -33,13 +36,31 @@ class AdminPanelProvider extends PanelProvider
             ->font('Nunito')
             ->path('admin')
             ->unsavedChangesAlerts()
-            ->brandName('Admission Expert') 
+            ->brandName('Heritage Dairy Foods') 
             ->favicon(asset('images/favicon.png'))
             ->maxContentWidth(MaxWidth::Full)
             ->login()
-            ->spa()
+            // ->spa()
+            ->authGuard('web')
+            ->passwordReset()
+            ->emailVerification()
+            ->profile()
+            ->authPasswordBroker('users')
+            ->sidebarCollapsibleOnDesktop()
+            ->collapsedSidebarWidth('5rem') 
+            ->sidebarWidth('17rem')
+            ->profile(EditProfile::class)
+            ->profile(isSimple: false)
+            ->userMenuItems([
+                'profile' => MenuItem::make()->label('User Profile'),
+            ])
             ->colors([
-                'primary' => Color::Amber,
+                'danger' => Color::Rose,
+                'gray' => Color::Gray,
+                'info' => Color::Blue, 
+                'primary' => Color::Cyan,
+                'success' => Color::Emerald,
+                'warning' => Color::Orange,
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
