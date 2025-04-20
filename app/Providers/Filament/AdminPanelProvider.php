@@ -2,8 +2,6 @@
 
 namespace App\Providers\Filament;
 
-use App\Models\Attendance;
-use Filament\Facades\Filament;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -12,19 +10,17 @@ use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-use App\Filament\Widgets\OrderStatusWidget;
 use Filament\Support\Enums\MaxWidth;
-use App\Filament\Pages\Settings;
 use Filament\Navigation\MenuItem;
 use Filament\Pages\Auth\EditProfile;
+use Illuminate\Support\Facades\URL;
+use Filament\Navigation\NavigationItem;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -36,7 +32,9 @@ class AdminPanelProvider extends PanelProvider
             ->font('Nunito')
             ->path('admin')
             ->unsavedChangesAlerts()
-            ->brandName('Heritage Dairy Foods') 
+            ->brandName('Heritage Dairy Foods')
+            ->brandLogo(asset('images/logo.svg'))
+            ->brandLogoHeight('2.5rem')
             ->favicon(asset('images/favicon.png'))
             ->maxContentWidth(MaxWidth::Full)
             ->login()
@@ -47,18 +45,19 @@ class AdminPanelProvider extends PanelProvider
             ->profile()
             ->authPasswordBroker('users')
             ->sidebarCollapsibleOnDesktop()
-            ->collapsedSidebarWidth('5rem') 
+            ->collapsedSidebarWidth('4rem')
             ->sidebarWidth('17rem')
             ->profile(EditProfile::class)
             ->profile(isSimple: false)
             ->userMenuItems([
                 'profile' => MenuItem::make()->label('User Profile'),
+                'logout' => MenuItem::make()->label('Log out'),
             ])
             ->colors([
                 'danger' => Color::Rose,
                 'gray' => Color::Gray,
-                'info' => Color::Blue, 
-                'primary' => Color::Cyan,
+                'info' => Color::Blue,
+                'primary' => Color::Yellow,
                 'success' => Color::Emerald,
                 'warning' => Color::Orange,
             ])
@@ -68,10 +67,7 @@ class AdminPanelProvider extends PanelProvider
                 Pages\Dashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
-            ->widgets([
-                Widgets\AccountWidget::class,
-                Widgets\FilamentInfoWidget::class,
-            ])
+            ->widgets([])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
@@ -86,8 +82,19 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ])
-            ->navigationItems($this->getNavigationItems())
-            
+            ->navigationItems([
+                NavigationItem::make('Profile')
+                    ->icon('heroicon-o-user-circle')
+                    ->url(fn() => URL::route('filament.admin.auth.profile'))
+                    ->sort(998)
+                    ->group('Account'),
+                NavigationItem::make()
+                    ->label('Logout')
+                    ->icon('heroicon-o-arrow-left-end-on-rectangle')
+                    ->url(fn() => URL::route('filament.admin.auth.logout'))
+                    ->sort(999)
+                    ->group('Account')
+            ])
             ->plugins([
                 \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make(),
             ]);
@@ -96,49 +103,7 @@ class AdminPanelProvider extends PanelProvider
     public function getWidgets(): array
     {
         return [
-            OrderStatusWidget::class,
-        ];
-    }
-
-    protected function getNavigationItems(): array
-    {
-        if (!Auth::check()) {
-            return []; // If the user is not logged in, show nothing
-        }
-
-        // $user = Auth::user();
-        // $latestAttendance = Attendance::where('user_id', $user->id)->latest()->first();
-
-        // $isOnBreak = $latestAttendance && $latestAttendance->break_in && !$latestAttendance->break_out;
-        // $hasNotCheckedIn = !$latestAttendance || !$latestAttendance->check_in;
-
-        // if ($isOnBreak || $hasNotCheckedIn) {
-        //     return [
-        //         [
-        //             'label' => 'Attendance',
-        //             'url' => route('filament.admin.resources.attendances.index'),
-        //             'icon' => 'heroicon-o-clock',
-        //         ],
-        //     ];
-        // }
-
-        // Normal navigation when user is checked in and break-out is done
-        return [
-            [
-                'label' => 'Dashboard',
-                'url' => route('filament.admin.pages.dashboard'),
-                'icon' => 'heroicon-o-home',
-            ],
-            [
-                'label' => 'Attendance',
-                'url' => route('filament.admin.resources.attendances.index'),
-                'icon' => 'heroicon-o-clock',
-            ],
-            [
-                'label' => 'Users',
-                'url' => route('filament.admin.resources.users.index'),
-                'icon' => 'heroicon-o-user-group',
-            ],
+            // OrderStatusWidget::class,
         ];
     }
 }

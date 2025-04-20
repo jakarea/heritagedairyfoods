@@ -5,7 +5,8 @@
             <!-- item -->
             <div class="w-full bg-[#FCFCFC] border border-[#DFDFDF] p-5 rounded-[4px] group anim relative">
                 {{-- stock badge --}}
-                @if ($product['stock'] == 0)
+                {{-- active, draft, archived, out_of_stock --}}
+                @if ($product['status'] === 'out_of_stock')
                 <div class="absolute bg-five text-center px-4 py-1 top-0 left-0 flex justify-center items-center">
                     <p class="font-semibold text-first text-base">শীঘ্রই আসছে</p>
                 </div>
@@ -13,12 +14,12 @@
                 {{-- stock badge --}}
                 <div class="bg-white text-center p-4 min-h-[225px] xl:h-[225px] flex justify-center items-center">
                     @if ($product['image'])
-                    <a href="{{ url('product/'.$product['slug']) }}" class="block w-full h-full">
-                        <img src="{{ $product['image'] }}" alt="doi"
-                            class="w-full max-w-[50%] {{ $product['type'] == 'x-small' ? 'xl:!max-w-[40%]' : '' }} {{ $product['type'] == 'small' ? 'xl:max-w-[60%]' : 'xl:max-w-[80%]' }} object-contain mx-auto anim group-hover:scale-110">
+                    <a href="{{ url($product['image']) }}" class="block w-full h-full">
+                        <img src="{{ url('storage/' . $product['image']) }}" alt="product image"
+                            class="w-full max-w-[50%] {{ $product['type'] == 'small' ? 'xl:!max-w-[40%]' : '' }} {{ $product['type'] == 'medium' ? 'xl:max-w-[60%]' : 'xl:max-w-[80%]' }} object-contain mx-auto anim group-hover:scale-110">
                     </a>
                     @else
-                    <img src="/images/products/chini-pata.webp" alt="doi"
+                    <img src="{{ asset('images/image-not-found.jpg') }}" alt="image-not-found"
                         class="w-full max-w-[50%] xl:max-w-[60%] object-contain">
                     @endif
                 </div>
@@ -26,7 +27,15 @@
                     <h2 class="font-medium text-base xl:text-lg">{{ $product['name'] }}</h2>
                     <h3
                         class="xl:mb-10 mb-6 text-base xl:text-xl font-normal text-first mt-3 xl:mt-5 flex items-center gap-x-4 xl:gap-x-5 justify-center">
-                        <div><span class="font-inter">{{ $product['weight'] }}</span> গ্রাম </div>
+                        <div>
+                            <span class="font-inter">
+                                @if($product['weight'] > 1000)
+                                {{ $product['weight'] / 1000 }} কেজি
+                                @else
+                                {{ $product['weight'] }} গ্রাম
+                                @endif
+                            </span>
+                        </div>
                         <div>
                             @isset($product['offer_price'])
                             <span class="font-inter">{{ $product['offer_price'] }}</span>

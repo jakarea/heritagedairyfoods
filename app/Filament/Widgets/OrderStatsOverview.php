@@ -56,12 +56,6 @@ class OrderStatsOverview extends BaseWidget
     // Set the number of columns for the stats grid
     protected function getColumns(): int
     {
-        return 4; // Display 4 stats in one row
-    }
-
-    // Optional: Customize responsive grid classes
-    public function getColumnClass(): string
-    {
-        return 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4'; // Responsive: 1 column on mobile, 2 on small screens, 4 on medium+
+        return 4;
     }
 }

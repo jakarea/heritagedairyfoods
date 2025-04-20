@@ -7,7 +7,6 @@
                     লিখে <br class="hidden xl:block">
                     "অর্ডার করুন" বাটনে ক্লিক করুন</h2>
 
-
             </div>
 
             <div class="mt-10 xl:mt-[100px]">
@@ -20,10 +19,9 @@
                             class="text-second text-xl">*</sup></p>
                 </div>
 
-
                 <div class="grid grid-cols-1 xl:grid-cols-2 xl:gap-x-[250px] gap-y-3">
                     @foreach ($products as $product)
-                    @if ($product['stock'] > 0)
+                    @if ($product['status'] === 'active')
                     <div
                         class="w-full border border-[#EAEAEA] p-3 xl:p-5 grid grid-cols-3 gap-x-3 xl:gap-x-5 items-center xl:flex anim hover:bg-[#F6F6F6] rounded-md">
                         <label for="cart-item-{{ $product['id'] }}"
@@ -33,11 +31,11 @@
                                 wire:change="toggleCart({{ $product['id'] }}, $event.target.checked)"
                                 @checked(in_array($product['id'], $isProductInCarts))>
 
-                            <div class="">
+                            <div class="w-full">
                                 @if ($product['image'])
-                                <img src="{{ url($product['image']) }}" alt="cart" class="max-w-[60px]">
+                                <img src="{{ url('storage/' . $product['image']) }}" alt="product image" class="max-w-[60px] mx-auto">
                                 @else
-                                <img src="/images/products/chini-pata.webp" alt="cart" class="max-w-[60px]">
+                                <img src="{{ asset('images/image-not-found.jpg') }}" alt="image-not-found" class="max-w-[40px]">
                                 @endif
                             </div>
                         </label>
@@ -57,12 +55,10 @@
                                             wire:loading.attr="disabled"
                                             wire:target="decrementQuantity({{ $product['id'] }})"
                                             class="w-[30px] text-center h-full xl:w-[60px] xl:text-base relative inline-flex justify-center items-center transition-all duration-150 ease-in-out transform active:scale-75 focus:ring-2 focus:ring-gray-300">
-
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                                 stroke-width="1.5" stroke="currentColor" class="size-4">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14" />
                                             </svg>
-
                                         </button>
 
 
@@ -79,15 +75,20 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round"
                                                     d="M12 4.5v15m7.5-7.5h-15" />
                                             </svg>
-
                                         </button>
-
                                     </div>
                                 </div>
                                 <div>
                                     <h5 class="text-sm xl:text-base font-normal text-black mb-2 xl:mb-2.5">মূল্য</h5>
                                     <p class="text-sm xl:text-base font-normal text-black">
-                                        <span class="font-inter">{{ $product['offer_price'] ?? $product['price'] }} </span> ৳</p>
+                                        <span class="font-inter">
+                                            @if ($product['offer_price'])
+                                            {{ $product['offer_price'] }}
+                                            <s class="text-red-400">{{ $product['price'] }}</s>
+                                            @else
+                                            {{ $product['price'] }}
+                                            @endif
+                                        </span> ৳</p>
                                 </div>
                             </div>
                         </div>
@@ -196,7 +197,7 @@
                                     <div
                                         class="w-[105px] h-[95px] border border-[#EAEAEA] flex justify-center items-center rounded-md">
                                         @if ($product['image'])
-                                        <img src="{{ $product['image'] }}" alt="cart" class="max-w-[65px]">
+                                        <img src="{{ url('storage/' . $product['image']) }}" alt="product image" class="max-w-[65px]">
                                         @else
                                         <img src="/images/products/chini-pata.webp" alt="cart" class="max-w-[65px]">
                                         @endif

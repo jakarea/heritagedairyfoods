@@ -22,7 +22,13 @@ use Filament\Infolists\Infolist;
 class CategoryResource extends Resource
 {
     protected static ?string $model = Category::class;
+    protected static ?string $navigationBadgeTooltip = 'The number of category';
     protected static ?string $navigationGroup = 'Products Management';
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return true;
+    }
 
     public static function form(Form $form): Form
     {
@@ -39,7 +45,7 @@ class CategoryResource extends Resource
                     TextInput::make('slug')
                         ->required()
                         ->maxLength(255)
-                        ->unique(Category::class, 'slug')
+                        ->unique(Category::class, 'slug',ignoreRecord: true)
                         ->disabled(fn($record) => $record !== null)
                         ->dehydrated(),
 
@@ -181,13 +187,13 @@ class CategoryResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\ImageColumn::make('image') 
+                ->extraImgAttributes(['class' => 'w-12 h-12 object-cover rounded-md'])->defaultImageUrl(url('images/image-not-found-2.jpg')),
                 TextColumn::make('name')->sortable()->searchable(),
                 TextColumn::make('slug')->sortable(),
                 TextColumn::make('parent.name')->label('Parent Category')->sortable(),
                 Tables\Columns\TextColumn::make('number_of_products')
-                    ->sortable(),
-                Tables\Columns\ImageColumn::make('image')
-                    ->defaultImageUrl(fn($record) => $record->image ? $record->image : url('path/to/default-image.jpg')),
+                    ->sortable(), 
                 BadgeColumn::make('created_at')->date(),
             ])
             ->filters([
@@ -246,13 +252,6 @@ class CategoryResource extends Resource
     {
         return [];
     }
-
-    public static function shouldRegisterNavigation(): bool
-    {
-        return true;
-    }
-
-
 
     public static function getPages(): array
     {

@@ -19,7 +19,13 @@ use Filament\Infolists\Infolist;
 class TagResource extends Resource
 {
     protected static ?string $model = Tag::class;
+    protected static ?string $navigationBadgeTooltip = 'The number of tags';
     protected static ?string $navigationGroup = 'Products Management';
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return true;
+    }
 
     public static function form(Form $form): Form
     {
@@ -131,6 +137,8 @@ class TagResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\ImageColumn::make('image') 
+                ->extraImgAttributes(['class' => 'w-12 h-12 object-cover rounded-md'])->defaultImageUrl(url('images/image-not-found-2.jpg')),
                 Tables\Columns\TextColumn::make('name')
                     ->searchable()
                     ->sortable(),
@@ -142,11 +150,7 @@ class TagResource extends Resource
                     ->limit(50)
                     ->tooltip(fn(?string $state): ?string => $state),
                 Tables\Columns\TextColumn::make('number_of_products')
-                    ->sortable(),
-                Tables\Columns\ImageColumn::make('image')
-                    ->defaultImageUrl(fn($record) => $record->image ? $record->image : url('path/to/default-image.jpg')),
-                Tables\Columns\ImageColumn::make('image')
-                    ->defaultImageUrl(fn($record) => $record->image ? $record->image : url('path/to/default-image.jpg')),
+                    ->sortable(), 
                 BadgeColumn::make('created_at')->date(),
             ])
             ->filters([
@@ -169,12 +173,7 @@ class TagResource extends Resource
     public static function getRelations(): array
     {
         return [];
-    }
-
-    public static function shouldRegisterNavigation(): bool
-    {
-        return true;
-    }
+    } 
 
     public static function getPages(): array
     {

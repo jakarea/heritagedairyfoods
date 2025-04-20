@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\Product;
 use Livewire\Component;
 
 class ProductDetailsPage extends Component
@@ -13,14 +14,7 @@ class ProductDetailsPage extends Component
     {
         $this->productSlug = $productSlug;
 
-        // Load the product data from a JSON file (adjust path as needed)
-        $jsonData = file_get_contents(storage_path('app/public/products.json'));
-
-        // Decode the JSON data into a PHP array
-        $products = json_decode($jsonData, true); // true to return as an array
-
-        // Find the product with the corresponding ID
-        $this->product = collect($products)->firstWhere('slug', $this->productSlug);
+        $this->product = Product::where('slug', $productSlug)->first();
     }
 
     public function render()

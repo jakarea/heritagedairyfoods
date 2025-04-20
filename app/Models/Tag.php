@@ -23,19 +23,12 @@ class Tag extends Model
         'image',
     ];
 
-    /**
-     * Get the products associated with this tag.
-     */
-    // public function products(): BelongsToMany
-    // {
-    //     return $this->belongsToMany(Product::class, 'tags');
-    // }
+    protected $casts = [
+        'number_of_products' => 'integer',
+    ];
 
-    /**
-     * Get the number of products associated with this tag.
-     */
-    // public function getNumberOfProductsAttribute(): int
-    // {
-    //     return $this->products()->count();
-    // }
+    public function getNumberOfProductsAttribute(): int
+    {
+        return Product::whereJsonContains('tags', $this->name)->count();
+    }
 }

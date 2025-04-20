@@ -21,7 +21,7 @@ use Filament\Tables\Filters\SelectFilter;
 class OrderResource extends Resource
 {
     protected static ?string $model = Order::class;
-
+    protected static ?string $navigationBadgeTooltip = 'The number of orders';
     protected static ?string $navigationIcon = 'heroicon-o-shopping-cart'; 
 
     public static function canCreate(): bool
