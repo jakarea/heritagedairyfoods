@@ -37,7 +37,7 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogoHeight('2.5rem')
             ->favicon(asset('images/favicon.png'))
             ->maxContentWidth(MaxWidth::Full)
-            ->login()
+            ->login() 
             // ->spa()
             ->authGuard('web')
             ->passwordReset()

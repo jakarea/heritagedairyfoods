@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('product_attributes', function (Blueprint $table) {
             $table->id();
             $table->string('name', 100);
-            // $table->enum('display_type', ['dropdown', 'swatch', 'tab'])->default('dropdown')->nulable();
+            $table->string('slug', 100);
+            $table->boolean('is_active')->default(true); 
             $table->timestamps();
             $table->softDeletes();
             $table->index('name');

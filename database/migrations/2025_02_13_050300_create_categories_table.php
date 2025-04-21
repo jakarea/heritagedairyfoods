@@ -19,6 +19,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->text('number_of_products')->nullable();
             $table->text('image')->nullable();
+            $table->boolean('is_active')->nullable()->default(true);
             $table->timestamps();
             $table->softDeletes();
             $table->index('slug');

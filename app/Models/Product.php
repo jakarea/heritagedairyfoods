@@ -9,19 +9,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class Product extends Model
 {
     protected $fillable = [
-        'name', 'subtitle', 'slug', 'description', 'short_desc', 'meta_title', 'meta_description','image',
-        'meta_keywords', 'search_keywords', 'price', 'offer_price', 'discount_in', 'stock', 'sku',
-        'status', 'type', 'weight', 'categories', 'tags', 'video', 'details', 'conclusion'
+        'name', 'subtitle', 'slug', 'short_desc', 'description', 'base_price', 'discount_price','discount_in',
+        'stock', 'status', 'type', 'weight', 'categories', 'tags', 'video',
+        'meta_title', 'meta_description', 'meta_keywords', 'search_keywords', 'is_active'
     ];
 
     protected $casts = [
         'categories' => 'array',
-        'tags' => 'array',
-        'video' => 'array',
-        'details' => 'array',
-        'conclusion' => 'array',
-        'price' => 'decimal:2',
-        'offer_price' => 'decimal:2',
+        'tags' => 'array',   
+        'base_price' => 'decimal:2',
+        'discount_price' => 'decimal:2',
     ];
     
 
@@ -38,6 +35,12 @@ class Product extends Model
     public function variations(): HasMany
     {
         return $this->hasMany(ProductVariation::class);
+    }
+
+    public function ProductattributeValues()
+    {
+        return $this->belongsToMany(ProductAttributeValue::class, 'product_attribute_product', 'product_id', 'product_attribute_value_id')
+            ->withPivot('price_adjustment', 'sku');
     }
     
     // Accessor to fetch Category records
