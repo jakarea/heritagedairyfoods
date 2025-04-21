@@ -15,26 +15,35 @@ return new class extends Migration
             throw new \Exception("The 'categories' table must be migrated first.");
         }
 
-            Schema::create('products', function (Blueprint $table) {
-                $table->id();
-                $table->string('name');
-                $table->string('slug')->unique(); // SEO-friendly URL
-                $table->text('description')->nullable();
-                $table->text('short_desc')->nullable();
-                $table->string('meta_title')->nullable(); // SEO Meta Title
-                $table->text('meta_description')->nullable(); // SEO Meta Description
-                $table->string('meta_keywords')->nullable(); // SEO Meta Keywords
-                $table->text('search_keywords')->nullable(); // Search optimization
-                $table->decimal('price', 10, 2); // Base price (if no variation)
-                $table->decimal('discount_price', 10, 2)->nullable();
-                $table->enum('discount_in', ['flat', 'percentage'])->default('flat');
-                $table->integer('stock')->nullable(); // NULL means variations manage stock
-                $table->string('sku')->unique();
-                $table->enum('status', ['active', 'draft', 'out_of_stock', 'archived'])->default('active');
-                $table->json('categories'); // Store multiple category IDs
-                $table->json('tags'); // Store multiple tag names
-                $table->timestamps();
-            });
+        Schema::create('products', function (Blueprint $table) {
+            $table->id();
+            $table->string('name', 255);
+            $table->string('subtitle', 255)->nullable();
+            $table->string('slug', 255)->unique();
+            $table->text('short_desc')->nullable();
+            $table->longText('description')->nullable();
+            $table->decimal('base_price', 10, 2)->nullable();
+            $table->decimal('discount_price', 10, 2)->nullable();
+            $table->enum('discount_in', ['flat', 'percentage'])->default('flat');
+            $table->integer('stock')->default(0);
+            $table->string('sku', 50)->unique()->nullable();
+            $table->enum('status', ['active', 'draft', 'out_of_stock', 'archived'])->default('active');
+            $table->enum('type', ['simple', 'variable', 'bundle'])->default('simple');  
+            $table->decimal('weight', 8, 2)->nullable(); 
+            $table->json('categories')->nullable(); 
+            $table->json('tags')->nullable();  
+            $table->string('video', 255)->nullable();  
+            // $table->foreignId('brand_id')->nullable()->constrained('brands')->onDelete('set null');
+            $table->string('meta_title', 255)->nullable();
+            $table->text('meta_description')->nullable();
+            $table->text('meta_keywords')->nullable();
+            $table->text('search_keywords')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->timestamps();
+            $table->softDeletes();
+            $table->index('slug');
+            $table->index('sku');
+        });
     }
 
     /**

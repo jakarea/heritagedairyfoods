@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Filament\Resources\CategoryResource\Pages;
+namespace App\Filament\Resources\UserResource\Pages;
 
-use App\Filament\Resources\CategoryResource;
+use App\Filament\Resources\UserResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 
-class EditCategory extends EditRecord
+class EditUser extends EditRecord
 {
     use \App\Traits\RedirectIndex; 
-    protected static string $resource = CategoryResource::class;
+    
+    protected static string $resource = UserResource::class;
 
     protected function getHeaderActions(): array
     {
