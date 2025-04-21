@@ -72,22 +72,7 @@ class ProductResource extends Resource
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make('SEO Settings')
-                    ->schema([
-                        Forms\Components\TextInput::make('meta_title')
-                            ->nullable()
-                            ->maxLength(255),
-                        Forms\Components\Textarea::make('meta_description')
-                            ->nullable()
-                            ->maxLength(65535),
-                        Forms\Components\TextInput::make('meta_keywords')
-                            ->nullable()
-                            ->maxLength(255),
-                        Forms\Components\TextInput::make('search_keywords')
-                            ->nullable()
-                            ->maxLength(65535),
-                    ])
-                    ->columns(2),
+
 
                 Forms\Components\Section::make('Pricing & Stock')
                     ->schema([
@@ -196,76 +181,92 @@ class ProductResource extends Resource
                     ])
                     ->columnSpanFull(),
 
-                Forms\Components\Section::make('Video')
+                Forms\Components\Section::make('SEO Settings')
                     ->schema([
-                        Forms\Components\TextInput::make('video.title')
-                            ->label('Video Title')
+                        Forms\Components\TextInput::make('meta_title')
                             ->nullable()
                             ->maxLength(255),
-                        Forms\Components\TextInput::make('video.sub_title')
-                            ->label('Video Subtitle')
+                        Forms\Components\Textarea::make('meta_description')
+                            ->nullable()
+                            ->maxLength(65535),
+                        Forms\Components\TextInput::make('meta_keywords')
                             ->nullable()
                             ->maxLength(255),
-                        Forms\Components\TextInput::make('video.url')
-                            ->label('Video URL')
-                            ->nullable()
-                            ->url()
-                            ->maxLength(255),
-                        Forms\Components\Textarea::make('video.description')
-                            ->label('Video Description')
+                        Forms\Components\TextInput::make('search_keywords')
                             ->nullable()
                             ->maxLength(65535),
                     ])
                     ->columns(2),
+                // Forms\Components\Section::make('Video')
+                //     ->schema([
+                //         Forms\Components\TextInput::make('video.title')
+                //             ->label('Video Title')
+                //             ->nullable()
+                //             ->maxLength(255),
+                //         Forms\Components\TextInput::make('video.sub_title')
+                //             ->label('Video Subtitle')
+                //             ->nullable()
+                //             ->maxLength(255),
+                //         Forms\Components\TextInput::make('video.url')
+                //             ->label('Video URL')
+                //             ->nullable()
+                //             ->url()
+                //             ->maxLength(255),
+                //         Forms\Components\Textarea::make('video.description')
+                //             ->label('Video Description')
+                //             ->nullable()
+                //             ->maxLength(65535),
+                //     ])
+                //     ->columns(2),
 
-                Forms\Components\Section::make('Details')
-                    ->schema([
-                        Forms\Components\Repeater::make('details')
-                            ->schema([
-                                Forms\Components\FileUpload::make('image')
-                                    ->image()
-                                    ->directory('product-detail-images')
-                                    ->nullable()
-                                    ->label('Detail Image')
-                                    ->columnSpanFull(),
-                                Forms\Components\Repeater::make('blocks')
-                                    ->schema([
-                                        Forms\Components\TextInput::make('title')
-                                            ->label('Block Title')
-                                            ->nullable()
-                                            ->maxLength(255),
-                                        Forms\Components\Repeater::make('lists')
-                                            ->schema([
-                                                Forms\Components\TextInput::make('item')
-                                                    ->label('List Item')
-                                                    ->required()
-                                                    ->maxLength(65535),
-                                            ])
-                                            ->label('List Items')
-                                            ->required(),
-                                    ])
-                                    ->collapsible()
-                                    ->itemLabel(fn(array $state): ?string => $state['title'] ?? 'Block')
-                                    ->columnSpanFull(),
-                            ])
-                            ->collapsible()
-                            ->itemLabel(fn(array $state): ?string => $state['blocks'][0]['title'] ?? 'Detail Section')
-                            ->columns(2),
-                    ])
-                    ->columnSpanFull(),
+                // Forms\Components\Section::make('Details')
+                //     ->schema([
+                //         Forms\Components\Repeater::make('details')
+                //             ->schema([
+                //                 Forms\Components\FileUpload::make('image')
+                //                     ->image()
+                //                     ->directory('product-detail-images')
+                //                     ->nullable()
+                //                     ->label('Detail Image')
+                //                     ->columnSpanFull(),
+                //                 Forms\Components\Repeater::make('blocks')
+                //                     ->schema([
+                //                         Forms\Components\TextInput::make('title')
+                //                             ->label('Block Title')
+                //                             ->nullable()
+                //                             ->maxLength(255),
+                //                         Forms\Components\Repeater::make('lists')
+                //                             ->schema([
+                //                                 Forms\Components\TextInput::make('item')
+                //                                     ->label('List Item')
+                //                                     ->required()
+                //                                     ->maxLength(65535),
+                //                             ])
+                //                             ->label('List Items')
+                //                             ->required(),
+                //                     ])
+                //                     ->collapsible()
+                //                     ->itemLabel(fn(array $state): ?string => $state['title'] ?? 'Block')
+                //                     ->columnSpanFull(),
+                //             ])
+                //             ->collapsible()
+                //             ->itemLabel(fn(array $state): ?string => $state['blocks'][0]['title'] ?? 'Detail Section')
+                //             ->columns(2),
+                //     ])
+                //     ->columnSpanFull(),
 
-                Forms\Components\Section::make('Conclusion')
-                    ->schema([
-                        Forms\Components\TextInput::make('conclusion.title')
-                            ->label('Conclusion Title')
-                            ->nullable()
-                            ->maxLength(255),
-                        Forms\Components\Textarea::make('conclusion.description')
-                            ->label('Conclusion Description')
-                            ->nullable()
-                            ->maxLength(65535),
-                    ])
-                    ->columns(2),
+                // Forms\Components\Section::make('Conclusion')
+                //     ->schema([
+                //         Forms\Components\TextInput::make('conclusion.title')
+                //             ->label('Conclusion Title')
+                //             ->nullable()
+                //             ->maxLength(255),
+                //         Forms\Components\Textarea::make('conclusion.description')
+                //             ->label('Conclusion Description')
+                //             ->nullable()
+                //             ->maxLength(65535),
+                //     ])
+                //     ->columns(2),
             ]);
     }
 
@@ -273,8 +274,8 @@ class ProductResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\ImageColumn::make('image') 
-                ->extraImgAttributes(['class' => 'w-12 h-12 object-cover rounded-md'])->defaultImageUrl(url('images/image-not-found-2.jpg')),
+                Tables\Columns\ImageColumn::make('image')
+                    ->extraImgAttributes(['class' => 'w-12 h-12 object-cover rounded-md'])->defaultImageUrl(url('images/image-not-found-2.jpg')),
                 Tables\Columns\TextColumn::make('name')
                     ->searchable()
                     ->sortable(),
@@ -284,7 +285,7 @@ class ProductResource extends Resource
                 Tables\Columns\TextColumn::make('type')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('weight')
-                ->suffix(' gm') 
+                    ->suffix(' gm')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('offer_price')
                     ->money('BDT')
@@ -347,7 +348,7 @@ class ProductResource extends Resource
                     Tables\Actions\EditAction::make(),
                     Tables\Actions\DeleteAction::make(),
                 ])
-            ]) 
+            ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
             ]);

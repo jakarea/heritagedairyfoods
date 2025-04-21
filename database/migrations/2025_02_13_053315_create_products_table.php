@@ -17,29 +17,32 @@ return new class extends Migration
 
         Schema::create('products', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('subtitle')->nullable(); // New: For product subtitle
-            $table->string('slug')->unique();
-            $table->text('description')->nullable();
+            $table->string('name', 255);
+            $table->string('subtitle', 255)->nullable();
+            $table->string('slug', 255)->unique();
             $table->text('short_desc')->nullable();
-            $table->string('meta_title')->nullable();
-            $table->text('meta_description')->nullable();
-            $table->string('meta_keywords')->nullable();
-            $table->text('search_keywords')->nullable();
-            $table->decimal('price', 10, 2);
-            $table->decimal('offer_price', 10, 2)->nullable(); 
+            $table->longText('description')->nullable();
+            $table->decimal('base_price', 10, 2)->nullable();
+            $table->decimal('discount_price', 10, 2)->nullable();
             $table->enum('discount_in', ['flat', 'percentage'])->default('flat');
-            $table->string('image')->nullable();
-            $table->string('sku')->unique();
+            $table->integer('stock')->default(0);
+            $table->string('sku', 50)->unique()->nullable();
             $table->enum('status', ['active', 'draft', 'out_of_stock', 'archived'])->default('active');
-            $table->enum('type', ['small', 'medium', 'large'])->default('medium'); 
-            $table->string('weight')->nullable();  
-            $table->json('categories');
-            $table->json('tags');
-            $table->json('video')->nullable(); 
-            $table->json('details')->nullable(); 
-            $table->json('conclusion')->nullable(); 
+            $table->enum('type', ['simple', 'variable', 'bundle'])->default('simple');  
+            $table->decimal('weight', 8, 2)->nullable(); 
+            $table->json('categories')->nullable(); 
+            $table->json('tags')->nullable();  
+            $table->string('video', 255)->nullable();  
+            // $table->foreignId('brand_id')->nullable()->constrained('brands')->onDelete('set null');
+            $table->string('meta_title', 255)->nullable();
+            $table->text('meta_description')->nullable();
+            $table->text('meta_keywords')->nullable();
+            $table->text('search_keywords')->nullable();
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
+            $table->softDeletes();
+            $table->index('slug');
+            $table->index('sku');
         });
     }
 

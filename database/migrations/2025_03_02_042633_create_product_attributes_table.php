@@ -13,8 +13,11 @@ return new class extends Migration
     {
         Schema::create('product_attributes', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique(); // e.g., "Size", "Color", "Weight"
+            $table->string('name', 100);
+            // $table->enum('display_type', ['dropdown', 'swatch', 'tab'])->default('dropdown')->nulable();
             $table->timestamps();
+            $table->softDeletes();
+            $table->index('name');
         });
     }
 

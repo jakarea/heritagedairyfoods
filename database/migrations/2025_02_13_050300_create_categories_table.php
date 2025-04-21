@@ -20,6 +20,8 @@ return new class extends Migration
             $table->text('number_of_products')->nullable();
             $table->text('image')->nullable();
             $table->timestamps();
+            $table->softDeletes();
+            $table->index('slug');
         });
     }
 
