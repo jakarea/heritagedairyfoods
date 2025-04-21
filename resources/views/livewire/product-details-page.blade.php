@@ -22,11 +22,9 @@
                 </div>
                 <div class="order-1 relative xl:order-2 xl:text-end">
                     @if ($product['image'])
-                    <img src="{{ url('storage/' . $product['image']) }}" alt="product image"
-                        class="mx-auto max-w-[70%] xl:max-w-[85%]">
+                    <img src="{{ url($product['image']) }}" alt="doi" class="mx-auto max-w-[70%] xl:max-w-[85%]">
                     @else
-                    <img src="{{ asset('images/image-not-found.jpg') }}" alt="image-not-found"
-                        class="mx-auto max-w-[60%] xl:max-w-[75%]">
+                    <img src="/images/cup-doi.webp" alt="doi" class="mx-auto max-w-[70%] xl:max-w-[85%]">
                     @endif
                 </div>
             </div>
@@ -45,14 +43,8 @@
                         class="bg-[#FAFAFA] text-[#484848] text-base font-medium xl:text-[24px] py-2 xl:py-2.5 rounded-lg">
                         মূল্য
                     </h5>
-                    <p class="text-[#484848] text-base font-normal xl:text-[24px]">
-
-                        @isset($product['offer_price'])
-                        <span class="font-inter">{{ $product['offer_price'] }}</span>
-                        <s><span class="font-inter text-red-600">{{ $product['price'] }}</span></s> ৳
-                        @else
-                        <span class="font-inter">{{ $product['price'] }}</span> ৳
-                        @endisset
+                    <p class="text-[#484848] text-base font-normal xl:text-[24px]"><span class="font-inter">{{
+                            $product['price'] }}</span> ৳
                     </p>
                 </div>
                 <!-- itm -->
@@ -62,14 +54,9 @@
                         class="bg-[#FAFAFA] text-[#484848] text-base font-medium xl:text-[24px] py-2 xl:py-2.5 rounded-lg">
                         পরিমাণ
                     </h5>
-                    <p class="text-[#484848] text-base font-normal xl:text-[24px]">
-                        @if($product['weight'] > 1000)
-                        <span class="font-inter">{{ $product['weight'] / 1000 }} </span> কেজি
-                        @else
-                        <span class="font-inter">{{ $product['weight'] }} </span> গ্রাম
-                        @endif
-                        </span>
-                    </p>
+                    <p class="text-[#484848] text-base font-normal xl:text-[24px]"><span class="font-inter">{{
+                            $product['weight'] }}</span>
+                        গ্রাম</p>
                 </div>
                 <!-- itm -->
                 <!-- itm -->
@@ -105,8 +92,8 @@
                 <h2 class="text-base xl:text-xl font-normal text-third tracking-[2px]">
                     {{ $product['video']['sub_title'] }}
                 </h2>
-                <h3 class="text-second text-xl font-semibold xl:text-4xl my-2 xl:mb-8 xl:mt-4">
-                    {{ $product['video']['title'] }}</h3>
+                <h3 class="text-second text-xl font-semibold xl:text-4xl my-2 xl:mb-8 xl:mt-4">{{
+                    $product['video']['title'] }}</h3>
             </div>
             <div class="w-full relative group anim" id="video-container">
                 <div id="thumbnail">
@@ -118,9 +105,11 @@
                     </a>
                 </div>
                 <div id="video" class="hidden w-full h-full">
-                    <iframe id="youtube-iframe" width="100%" height="562" src="" title="YouTube video player"
-                        frameborder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    <iframe id="youtube-iframe" width="100%" height="562" 
+                        src="" 
+                        title="YouTube video player" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                         allowfullscreen></iframe>
                 </div>
             </div>
@@ -138,57 +127,122 @@
     <!-- video section end -->
 
     <!-- product feature section start -->
-    @foreach ($product['details'] as $key => $detail)
-    @php $key = $key + 1; @endphp
-    <section class="w-full {{ $key % 2 != 0 ? 'bg-fourth' : '' }} py-10 relative z-20 xl:py-16">
-        @if ($key % 2 != 0)
-            <img src="{{ asset('images/pattern-bg-01.webp') }}" alt="pattern bg"
-            class="absolute top-0 left-0 w-full h-full -z-10">
-        @endif 
-
+    <section class="w-full bg-fourth py-10 relative z-20 xl:py-16">
+        <img src="/images/pattern-bg-01.webp" alt="pattern bg" class="absolute top-0 left-0 w-full h-full -z-10">
         <div class="container">
             <div class="w-full grid grid-cols-1 gap-y-6 xl:grid-cols-2 xl:items-center xl:gap-x-2">
-                <div class="txt {{ $key % 2 != 0 ? 'order-2 xl:order-1' : 'order-1 xl:order-2' }}">
-
-                    @foreach ($detail['blocks'] as $block)
+                <div class="txt order-2 xl:order-1">
                     <h2 class="text-2xl xl:text-[34px] xl:leading-[150%] font-semibold text-second">
-                        {{ $block['title'] }}
+                        {{ $product['details'][0]['title'] }}
                     </h2>
+
                     <ul class="mt-4 xl:mt-5 flex flex-col gap-y-5 xl:divide-y">
-                        @foreach ($block['lists'] as $listItem)
-                        <li class="flex items-center gap-x-2 xl:gap-x-4 pt-2 xl:pt-4">
+                        @foreach ($product['details'][0]['lists'] as $listItem)
+                        <li class="flex items-center gap-x-2 xl:gap-x-4">
                             <span
                                 class="flex w-5 h-5 bg-second items-center justify-center rounded-full border-[4px] border-[#FFCBCB] shrink-0"></span>
                             <p class="text-base xl:text-xl font-normal text-third">
-                                {{ $listItem['item'] }}
+                                {{ $listItem }}
                             </p>
                         </li>
                         @endforeach
                     </ul>
-                    <div class="my-7 xl:my-16"></div>
-                    @endforeach
 
+                    <div class="my-7 xl:my-16"></div>
+
+                    @if ($product['details'][0]['title_2'] && $product['details'][0]['lists_2'])
+
+                    <h2 class="text-2xl xl:text-[34px] xl:leading-[150%] font-semibold text-second">{{
+                        $product['details'][0]['title_2'] }}
+                    </h2>
+
+                    <ul class="mt-4 xl:mt-5 flex flex-col gap-y-5 xl:divide-y">
+                        @foreach ($product['details'][0]['lists_2'] as $listItem)
+                        <li class="flex items-center gap-x-2 xl:gap-x-4">
+                            <span
+                                class="flex w-5 h-5 bg-second items-center justify-center rounded-full border-[4px] border-[#FFCBCB] shrink-0"></span>
+                            <p class="text-base xl:text-xl font-normal text-third">
+                                {{ $listItem }}
+                            </p>
+                        </li>
+                        @endforeach
+                    </ul>
+                    @endif
                 </div>
-                <div class="img {{ $key % 2 != 0 ? 'order-1 xl:order-2 xl:ml-auto' : 'order-2 xl:order-1 xl:mr-auto' }} xl:w-[80%]">
-                    @if ($detail['image'])
-                    <img src="{{ url('storage/' . $detail['image']) }}" alt="feature-image" class="mx-auto w-full">
+                <div class="img order-1 xl:order-2 xl:w-[80%] xl:ml-auto">
+                    @if ($product['details'][0]['image'])
+                    <img src="{{ url($product['details'][0]['image']) }}" alt="feature-image-03" class="mx-auto w-full">
                     @else
-                    <img src="{{ asset('images/image-not-found.jpg') }}" alt="feature-image" class="mx-auto w-full">
+                    <img src="/images/feature-image-03.webp" alt="feature-image-03" class="mx-auto w-full">
                     @endif
                 </div>
             </div>
         </div>
     </section>
-    @endforeach
-    <!-- product feature section end --> 
+    <!-- product feature section end -->
+
+    <!-- product feature section start -->
+    <section class="w-full bg-white py-10 relative z-20 xl:py-[200px]">
+        <div class="container">
+            <div class="w-full grid grid-cols-1 gap-y-6 xl:grid-cols-2 xl:items-center xl:gap-x-2">
+                <div class="txt order-2">
+                    <h2 class="text-2xl xl:text-[34px] xl:leading-[150%] font-semibold text-second">{{
+                        $product['details'][1]['title'] }}
+                    </h2>
+
+                    <ul class="mt-3 xl:mt-5 flex flex-col gap-y-5">
+                        @foreach ($product['details'][1]['lists_2'] as $listItem)
+                        <li class="flex items-center gap-x-2 xl:gap-x-4">
+                            <span
+                                class="flex w-5 h-5 bg-second items-center justify-center rounded-full border-[4px] border-[#FFCBCB] shrink-0"></span>
+                            <p class="text-base xl:text-xl font-normal text-third">
+                                {{ $listItem }}
+                            </p>
+                        </li>
+                        @endforeach
+                    </ul>
+
+                    <div class="my-5 xl:my-12"></div>
+
+                    @if ($product['details'][1]['title_2'] && $product['details'][1]['lists_2'])
+
+
+                    <h2 class="text-2xl xl:text-[34px] xl:leading-[150%] font-semibold text-second">{{
+                        $product['details'][1]['title_2'] }}
+                    </h2>
+
+                    <ul class="mt-3 xl:mt-5 flex flex-col gap-y-5">
+                        @foreach ($product['details'][0]['lists_2'] as $listItem)
+                        <li class="flex items-center gap-x-2 xl:gap-x-4">
+                            <span
+                                class="flex w-5 h-5 bg-second items-center justify-center rounded-full border-[4px] border-[#FFCBCB] shrink-0"></span>
+                            <p class="text-base xl:text-xl font-normal text-third">
+                                {{ $listItem }}
+                            </p>
+                        </li>
+                        @endforeach
+                    </ul>
+                    @endif
+
+                </div>
+                <div class="img order-1 xl:w-[90%]">
+                    @if ($product['details'][1]['image'])
+                    <img src="{{ url($product['details'][1]['image']) }}" alt="feature-image-03" class="mx-auto w-full">
+                    @else
+                    <img src="/images/feature-image-04.webp" alt="feature-image-04" class="mx-auto w-full">
+                    @endif
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- product feature section end -->
 
     <!-- purity section start -->
     <section class="w-full bg-fourth py-10 relative z-20 xl:py-16">
         <img src="/images/pattern-bg-01.webp" alt="pattern bg" class="absolute top-0 left-0 w-full h-full -z-10">
         <div class="container">
             <div class="text-center">
-                <h2 class="text-second text-xl font-semibold xl:text-[34px] my-2 xl:mb-8 xl:mt-4">{{
-                    $product['conclusion']['title'] }}</h2>
+                <h2 class="text-second text-xl font-semibold xl:text-[34px] my-2 xl:mb-8 xl:mt-4">{{ $product['conclusion']['title'] }}</h2>
                 <p
                     class="text-sm md:text-base xl:text-2xl xl:leading-[150%] font-normal text-third text-justify xl:text-center xl:mx-12">
                     {{ $product['conclusion']['description'] }}
@@ -225,8 +279,6 @@
     </script>
 
 
-    {{-- <iframe width="560" height="315" src="" title="YouTube video player" frameborder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe> --}}
+{{-- <iframe width="560" height="315" src="" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe> --}}
 
 </div>
