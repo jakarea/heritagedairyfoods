@@ -9,7 +9,15 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class ProductVariation extends Model
 {
     protected $fillable = [
-        'product_id', 'price', 'discount_price', 'discount_in', 'stock', 'sku', 'weight', 'is_default'
+        'name',
+        'product_id',
+        'price',
+        'discount_price',
+        'discount_in',
+        'stock',
+        'sku',
+        'weight',
+        'is_default'
     ];
 
     protected $casts = [
@@ -22,13 +30,23 @@ class ProductVariation extends Model
         return $this->belongsTo(Product::class);
     }
 
-    public function images(): HasMany
+    public function image(): HasMany
     {
-        return $this->hasMany(ProductImage::class);
+        return $this->hasMany(ProductImage::class, 'variation_id');
     }
 
     public function attributes(): HasMany
     {
         return $this->hasMany(ProductVariationAttribute::class);
+    }
+
+    public function productAttributeValues()
+    {
+        return $this->belongsToMany(
+            ProductAttributeValue::class,
+            'product_variation_attributes',
+            'product_variation_id',
+            'product_attribute_value_id'
+        );
     }
 }

@@ -55,14 +55,20 @@ class VariationsRelationManager extends RelationManager
     {
         return $table
             ->columns([
+                Tables\Columns\ImageColumn::make('image.image_path')->disk('public')->width(200)->height(100)->defaultImageUrl(url('images/image-not-found-2.jpg')),
+                Tables\Columns\TextColumn::make('name'),
                 Tables\Columns\TextColumn::make('sku'),
                 Tables\Columns\TextColumn::make('price')
-                    ->money('usd'),
+                    ->money('bdt'),
                 Tables\Columns\TextColumn::make('discount_price')
-                    ->money('usd'),
+                    ->money('bdt'),
+                Tables\Columns\TextColumn::make('discount_in')
+                    ->money('bdt'),
+                Tables\Columns\TextColumn::make('weight'),
                 Tables\Columns\TextColumn::make('stock'),
-                Tables\Columns\TextColumn::make('attributes')
-                    ->formatStateUsing(fn($state) => $state->isEmpty() ? '' : implode(', ', $state->map(fn($attr) => $attr->attributeValue->value)->toArray())),
+                Tables\Columns\BooleanColumn::make('is_default')
+                    ->label('Default Variation') 
+                 
             ])
             ->filters([
                 //

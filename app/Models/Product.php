@@ -9,18 +9,40 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class Product extends Model
 {
     protected $fillable = [
-        'name', 'subtitle', 'slug', 'short_desc', 'description', 'base_price', 'discount_price','discount_in',
-        'stock', 'status', 'type', 'weight', 'categories', 'tags', 'video',
-        'meta_title', 'meta_description', 'meta_keywords', 'search_keywords', 'is_active'
+        'name',
+        'subtitle',
+        'slug',
+        'short_desc',
+        'description',
+        'base_price',
+        'discount_price',
+        'discount_in',
+        'stock',
+        'sku',
+        'status',
+        'type',
+        'weight',
+        'categories',
+        'tags',
+        'video_url',
+        'meta_title',
+        'meta_description',
+        'meta_keywords',
+        'search_keywords',
+        'is_active'
     ];
 
     protected $casts = [
         'categories' => 'array',
-        'tags' => 'array',   
+        'tags' => 'array',
         'base_price' => 'decimal:2',
         'discount_price' => 'decimal:2',
     ];
-    
+
+    public function featuredImage()
+    {
+        return $this->hasOne(ProductImage::class)->where('is_primary', true);
+    }
 
     public function images(): HasMany
     {
@@ -39,10 +61,16 @@ class Product extends Model
 
     public function ProductattributeValues()
     {
-        return $this->belongsToMany(ProductAttributeValue::class, 'product_attribute_product', 'product_id', 'product_attribute_value_id')
-            ->withPivot('price_adjustment', 'sku');
+        return $this->hasManyThrough(
+            ProductAttributeValue::class,
+            ProductVariationAttribute::class,
+            'product_variation_id', // Foreign key on ProductVariationAttribute
+            'id',                   // Foreign key on ProductAttributeValue
+            'id',                   // Local key on Product
+            'product_attribute_value_id' // Local key on ProductVariationAttribute
+        );
     }
-    
+
     // Accessor to fetch Category records
     public function getCategoryRecordsAttribute()
     {

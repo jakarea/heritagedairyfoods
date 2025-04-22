@@ -7,18 +7,25 @@ use App\Filament\Resources\ProductResource\RelationManagers;
 use App\Models\Category;
 use App\Models\Tag;
 use App\Models\Product;
+use App\Models\ProductAttribute;
 use App\Models\ProductAttributeValue;
 use App\Models\ProductImage;
-use Filament\Forms\Components\{TextInput, Select, Textarea, FileUpload, Grid, Toggle, Repeater, RichEditor, Section};
-use Filament\Forms;
+use App\Models\ProductVariation;
+use App\Models\ProductVariationAttribute;
+use Filament\Forms\Components\{TextInput, Select, Textarea, FileUpload, Grid, Toggle, Repeater, RichEditor, Section, Hidden, Radio};
+use Filament\Forms\Components\Actions\Action;
+use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Actions;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Infolists\Infolist;
 use Filament\Infolists\Components;
+use Filament\Infolists\Components\Grid as ComponentsGrid;
 use Illuminate\Support\Str;
 use Filament\Tables\Actions\ActionGroup;
+use Filament\Notifications\Notification;
 
 class ProductResource extends Resource
 {
@@ -26,7 +33,7 @@ class ProductResource extends Resource
     protected static ?string $navigationGroup = 'Products Management';
     protected static ?string $navigationBadgeTooltip = 'The number of products';
     protected static ?string $navigationIcon = 'heroicon-o-shopping-bag';
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 3;
 
     public static function shouldRegisterNavigation(): bool
     {
@@ -136,17 +143,21 @@ class ProductResource extends Resource
                                 'archived' => 'Archived',
                                 'out_of_stock' => 'Out of Stock',
                             ])
+                            ->default('active')
+                            ->nullable()
                             ->searchable(),
-                       
-                        TextInput::make('video')
+
+                        TextInput::make('video_url')
                             ->label('Video URL')
                             ->nullable(),
-                            Select::make('type')
+                        Select::make('type')
                             ->options([
                                 'simple' => 'Simple',
                                 'variable' => 'Variable',
                                 'bundle' => 'Bundle',
                             ])
+                            ->default('simple')
+                            ->nullable()
                             ->searchable(),
                         Toggle::make('is_active')
                             ->label('Active')
@@ -170,16 +181,20 @@ class ProductResource extends Resource
                                 'flat' => 'Flat',
                                 'percentage' => 'Percentage',
                             ])
-                            ->default('flat')
-                            ->required(),
+                            ->default('flat'),
                         TextInput::make('weight')
                             ->nullable()
+                            ->numeric()
                             ->helperText('In grams only')
                             ->maxLength(255),
+                        TextInput::make('stock')
+                            ->nullable()
+                            ->numeric()
+                            ->maxLength(255),
                         TextInput::make('sku')
-                            ->required()
+                            ->nullable()
                             ->unique(Product::class, 'sku', ignoreRecord: true)
-                            ->maxLength(255)->columnSpan(2),
+                            ->maxLength(50),
 
                     ])
                     ->columns(3),
@@ -189,100 +204,260 @@ class ProductResource extends Resource
                         Section::make('Featured Image')
                             ->label('Featured Image')
                             ->schema([
-                                FileUpload::make('image')
+                                FileUpload::make('featured_image')
                                     ->image()
-                                    ->directory('product/images')
+                                    ->disk('public')
+                                    ->directory('product/featured_image')
                                     ->preserveFilenames(),
                             ])->columnSpan(1),
                         Section::make('Gallery Images')
                             ->label('Gallery Images')
                             ->schema([
-                                FileUpload::make('images')
-                                    ->image()
+                                FileUpload::make('gallery_images')
                                     ->multiple()
-                                    ->directory('product/images')
+                                    ->image()
+                                    ->disk('public')
+                                    ->directory('product/gallery_images')
                                     ->preserveFilenames(),
                             ])->columnSpan(1)
                     ])->columns(2)
                     ->columnSpanFull(),
 
+                Section::make('Product Attributes')
+                    ->schema([
+                        Repeater::make('product_attributes')
+                            ->schema([
+                                Grid::make()
+                                    ->schema([
+                                        Select::make('product_attribute_id')
+                                            ->label('Attribute')
+                                            ->searchable()
+                                            ->options(function () {
+                                                return ProductAttribute::pluck('name', 'id')->toArray();
+                                            })
+                                            ->live(debounce: 500)
+                                            ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                                $allAttributes = $get('../../attributes') ?? [];
+                                                $selectedAttributes = collect($allAttributes)
+                                                    ->pluck('product_attribute_id')
+                                                    ->filter()
+                                                    ->toArray();
+
+                                                $currentId = $state;
+                                                $count = array_count_values($selectedAttributes)[$currentId] ?? 0;
+
+                                                if ($currentId && $count > 1) {
+                                                    $set('product_attribute_id', null);
+                                                    Notification::make()
+                                                        ->title('This attribute is already selected')
+                                                        ->warning()
+                                                        ->send();
+                                                }
+
+                                                // Reset values when attribute changes
+                                                $set('product_attribute_values', []);
+                                            })
+                                            ->suffixAction(
+                                                Action::make('create_attribute')
+                                                    ->icon('heroicon-o-plus')
+                                                    ->form([
+                                                        TextInput::make('name')
+                                                            ->label('Attribute Name')
+                                                            ->required()
+                                                            ->unique(ProductAttribute::class, 'name'),
+                                                    ])
+                                                    ->action(function (array $data, callable $set) {
+                                                        $baseSlug = Str::slug($data['name']);
+                                                        $slug = $baseSlug;
+                                                        $counter = 1;
+                                                        while (ProductAttribute::where('slug', $slug)->exists()) {
+                                                            $slug = "{$baseSlug}-{$counter}";
+                                                            $counter++;
+                                                        }
+
+                                                        $newAttribute = ProductAttribute::create([
+                                                            'name' => $data['name'],
+                                                            'slug' => $slug,
+                                                        ]);
+
+                                                        $set('product_attribute_id', $newAttribute->id);
+
+                                                        Notification::make()
+                                                            ->title('Attribute created')
+                                                            ->success()
+                                                            ->send();
+                                                    })
+                                                    ->modalHeading('Create New Attribute')
+                                                    ->modalSubmitActionLabel('Create')
+                                            ),
+                                        Select::make('product_attribute_values')
+                                            ->label('Attribute Values')
+                                            ->multiple() // Allow multiple selections
+                                            ->options(function (callable $get) {
+                                                $attributeId = $get('product_attribute_id');
+                                                if ($attributeId) {
+                                                    return ProductAttributeValue::where('product_attribute_id', $attributeId)
+                                                        ->pluck('value', 'id')
+                                                        ->toArray();
+                                                }
+                                                return [];
+                                            })
+                                            ->visible(function (callable $get) {
+                                                return !empty($get('product_attribute_id'));
+                                            })
+                                            ->live(debounce: 500)
+                                            ->columnSpan(2)
+                                            ->suffixAction(
+                                                Action::make('add_attribute_value')
+                                                    ->icon('heroicon-o-plus')
+                                                    ->form([
+                                                        TextInput::make('value')
+                                                            ->label('New Attribute Value')
+                                                            ->required(),
+                                                    ])
+                                                    ->action(function (array $data, callable $get, callable $set) {
+                                                        $attributeId = $get('product_attribute_id');
+                                                        if (!$attributeId) {
+                                                            Notification::make()
+                                                                ->title('Please select an attribute first')
+                                                                ->warning()
+                                                                ->send();
+                                                            return;
+                                                        }
+
+                                                        $baseSlug = Str::slug($data['value']);
+                                                        $slug = $baseSlug;
+                                                        $counter = 1;
+                                                        while (ProductAttributeValue::where('slug', $slug)->exists()) {
+                                                            $slug = "{$baseSlug}-{$counter}";
+                                                            $counter++;
+                                                        }
+
+                                                        $newValue = ProductAttributeValue::create([
+                                                            'product_attribute_id' => $attributeId,
+                                                            'value' => $data['value'],
+                                                            'slug' => $slug,
+                                                        ]);
+
+                                                        $currentValues = $get('product_attribute_values') ?? [];
+                                                        $currentValues[] = (string) $newValue->id; // Ensure string for Select
+                                                        $set('product_attribute_values', $currentValues);
+
+                                                        Notification::make()
+                                                            ->title('Attribute value added')
+                                                            ->success()
+                                                            ->send();
+                                                    })
+                                                    ->modalHeading('Add New Attribute Value')
+                                                    ->modalSubmitActionLabel('Add')
+                                                    ->visible(function (callable $get) {
+                                                        return !empty($get('product_attribute_id'));
+                                                    })
+                                                    ->disabled(function (callable $get) {
+                                                        return empty($get('product_attribute_id'));
+                                                    })
+                                            ),
+                                    ])
+                                    ->columns(4)
+                                    ->columnSpanFull(),
+                            ])
+                            ->addActionLabel('Add Another Attribute')
+                            // ->collapsible()
+                            ->maxItems(3)
+                            ->columnSpanFull(),
+
+                        Actions::make([
+                            Action::make('generate_variants')
+                                ->label('Generate Variants')
+                                ->visible(function (callable $get) {
+                                    $attributes = $get('product_attributes') ?? [];
+
+                                    // Filter out incomplete ones
+                                    $validAttributes = collect($attributes)->filter(function ($attr) {
+                                        return !empty($attr['product_attribute_id']) &&
+                                            !empty($attr['product_attribute_values']) &&
+                                            count($attr['product_attribute_values']) > 0;
+                                    });
+
+                                    return $validAttributes->count() >= 2;
+                                })
+                                ->action(function (callable $get, callable $set) {
+                                    $attributes = collect($get('product_attributes'))->filter(function ($attr) {
+                                        return !empty($attr['product_attribute_id']) &&
+                                            !empty($attr['product_attribute_values']);
+                                    })->map(function ($attr) {
+                                        $attribute = ProductAttribute::find($attr['product_attribute_id']);
+                                        if (!$attribute) {
+                                            return null;
+                                        }
+
+                                        return [
+                                            'name' => $attribute->name,
+                                            'values' => ProductAttributeValue::whereIn('id', $attr['product_attribute_values'])->pluck('value')->toArray(),
+                                        ];
+                                    })->filter()->toArray();
+
+                                    $combinations = self::generateCombinations($attributes);
+
+                                    $variantData = collect($combinations)->map(function ($combo) {
+                                        $name = implode('-', array_values($combo));
+                                        return [
+                                            'name' => $name,
+                                            'sku' => strtoupper(Str::random(8)),
+                                            'price' => 0,
+                                            'stock' => 0,
+                                            'weight' => 0,
+                                            'is_default' => false,
+                                        ];
+                                    })->toArray();
+
+                                    $set('product_variations', $variantData);
+                                }),
+
+                        ]),
+                    ])
+                    ->columnSpanFull(),
+
                 Section::make('Product Variations')
                     ->schema([
-
-                        Repeater::make('variations')
-                        ->label(' ')
-                            ->relationship('variations')
+                        Repeater::make('product_variations')
+                            ->label('Generated Variants')
                             ->schema([
 
-                                Select::make('attribute_values')
-                                    ->multiple()
-                                    ->options(function () {
-                                        return ProductAttributeValue::where('is_active', true)
-                                            ->with('productAttribute')
-                                            ->get()
-                                            ->mapWithKeys(fn($value) => [
-                                                $value->id => "{$value->productAttribute->name}: {$value->value}",
-                                            ]);
-                                    })
-                                    ->required()
-                                    ->searchable()
-                                    ->label('Variation Attributes'),
-                                TextInput::make('price')
-                                    ->label('Price')
-                                    ->numeric()
-                                    ->prefix('$')
-                                    ->minValue(0)
-                                    ->required(),
-                                TextInput::make('discount_price')
-                                    ->label('Discount Price')
-                                    ->numeric()
-                                    ->prefix('$')
-                                    ->minValue(0)
-                                    ->nullable(),
-                                TextInput::make('discount_in')
-                                    ->label('Discount In')
-                                    ->maxLength(50)
-                                    ->nullable(),
-                                TextInput::make('stock')
-                                    ->label('Stock')
-                                    ->numeric()
-                                    ->minValue(0)
-                                    ->default(0)
-                                    ->required(),
-                                TextInput::make('sku')
-                                    ->label('Variation SKU')
-                                    ->maxLength(50)
-                                    ->nullable()
-                                    ->unique('product_variations', 'sku', ignoreRecord: true),
-                                TextInput::make('weight')
-                                    ->label('Weight')
-                                    ->numeric()
-                                    ->suffix('kg')
-                                    ->minValue(0)
-                                    ->nullable(),
-                                Toggle::make('is_default')
-                                    ->label('Default Variation')
-                                    ->default(false),
+                                Grid::make(6)
+                                    ->schema([
+                                        TextInput::make('name')
+                                            ->label('Variation Name')
+                                            ->required(),
+                                        TextInput::make('sku')->required(),
+                                        TextInput::make('price')->numeric()->required(),
+                                        TextInput::make('discount_price')->numeric(),
+                                        Select::make('discount_in')
+                                            ->options([
+                                                'flat' => 'Flat',
+                                                'percentage' => 'Percentage',
+                                            ])
+                                            ->required()
+                                            ->default('flat'),
+                                        TextInput::make('stock')->numeric()->required(),
+                                        TextInput::make('weight')->numeric(),
+                                    ])->columnSpan(4)->columns(4),
+
+
+                                FileUpload::make('image')
+                                    ->image()
+                                    ->disk('public')
+                                    ->label('Variation Image')
+                                    ->directory('products/variation_images')
+                                    ->imagePreviewHeight('100')->columnSpan(2),
                             ])
-                            ->columns(2)
-                            ->collapsible()
-                            ->itemLabel(function (array $state) {
-                                $attributes = collect($state['attribute_values'] ?? [])
-                                    ->map(fn($id) => ProductAttributeValue::find($id)?->value)
-                                    ->filter()
-                                    ->implode(', ');
-                                return $attributes ?: 'Variation';
-                            })
-                            ->addActionLabel('Add Variation')
-                            ->columnSpan(9),
+                            ->columns(6)
+                            ->default([])
+                            ->addable(false)
+                            ->reorderable(false)
+                            ->hidden(fn(callable $get) => count($get('product_attributes') ?? []) < 1)
 
-                        FileUpload::make('images')
-                            ->image() 
-                            ->directory('product/images')
-                            ->preserveFilenames()
-                            ->columnSpan(3),
-
-                    ])->columnSpan(12)->columns(12),
+                    ]),
 
                 Section::make('SEO Settings')
                     ->schema([
@@ -303,39 +478,7 @@ class ProductResource extends Resource
                     ])
                     ->columns(2),
 
-                // Forms\Components\Section::make('Variations')
-                //     ->schema([
-                //         Repeater::make('attributeValues')
-                //             ->relationship()
-                //             ->schema([
-                //                 Select::make('product_attribute_value_id')
-                //                     ->label('Attribute Value')
-                //                     ->options(function () {
-                //                         return ProductAttributeValue::where('is_active', true)
-                //                             ->with('productAttribute')
-                //                             ->get()
-                //                             ->mapWithKeys(fn($value) => [
-                //                                 $value->id => "{$value->productAttribute->name}: {$value->value}",
-                //                             ]);
-                //                     })
-                //                     ->required()
-                //                     ->searchable(),
-                //                 TextInput::make('price_adjustment')
-                //                     ->label('Price Adjustment')
-                //                     ->numeric()
-                //                     ->prefix('$')
-                //                     ->nullable(),
-                //                 TextInput::make('sku')
-                //                     ->label('Variation SKU')
-                //                     ->maxLength(50)
-                //                     ->nullable(),
-                //                     // ->unique('product_attribute_product', 'sku', ignoreRecord: true),
-                //             ])
-                //             ->columns(3)
-                //             ->label('Attribute Values')
-                //             ->addActionLabel('Add Variation'),
-                //     ])
-                //     ->collapsible(),
+
             ])->columns(12);
     }
 
@@ -344,11 +487,16 @@ class ProductResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\ImageColumn::make('image')
-                    ->extraImgAttributes(['class' => 'w-12 h-12 object-cover rounded-md'])->defaultImageUrl(url('images/image-not-found-2.jpg')),
+                    ->label('Feat Image')
+                    ->getStateUsing(function ($record) {
+                        return $record->featuredImage?->image_path ?? null;
+                    })
+                    ->extraImgAttributes(['class' => 'w-12 h-12 object-cover rounded-md'])
+                    ->defaultImageUrl(url('images/image-not-found-2.jpg')),
                 Tables\Columns\TextColumn::make('name')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('price')
+                Tables\Columns\TextColumn::make('base_price')
                     ->money('BDT')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('type')
@@ -356,7 +504,7 @@ class ProductResource extends Resource
                 Tables\Columns\TextColumn::make('weight')
                     ->suffix(' gm')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('offer_price')
+                Tables\Columns\TextColumn::make('discount_price')
                     ->money('BDT')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('status')
@@ -427,31 +575,25 @@ class ProductResource extends Resource
     {
         return $infolist
             ->schema([
+
                 Components\Section::make('Basic Information')
                     ->schema([
                         Components\TextEntry::make('name'),
                         Components\TextEntry::make('subtitle'),
                         Components\TextEntry::make('slug'),
-                        Components\TextEntry::make('description')->html(),
                         Components\TextEntry::make('short_desc'),
-                        Components\TextEntry::make('type'),
                         Components\TextEntry::make('weight'),
-                    ])
-                    ->columns(2),
-
-                Components\Section::make('SEO Settings')
-                    ->schema([
-                        Components\TextEntry::make('meta_title'),
-                        Components\TextEntry::make('meta_description'),
-                        Components\TextEntry::make('meta_keywords'),
-                        Components\TextEntry::make('search_keywords'),
+                        Components\TextEntry::make('type'),
+                        Components\TextEntry::make('description')
+                            ->html()
+                            ->columnSpanFull(),
                     ])
                     ->columns(2),
 
                 Components\Section::make('Pricing & Stock')
                     ->schema([
-                        Components\TextEntry::make('price')->money('bdt'),
-                        Components\TextEntry::make('offer_price')->money('bdt'),
+                        Components\TextEntry::make('base_price')->money('bdt'),
+                        Components\TextEntry::make('discount_price')->money('bdt'),
                         Components\TextEntry::make('discount_in'),
                         Components\TextEntry::make('sku'),
                         Components\TextEntry::make('status')->badge(),
@@ -475,76 +617,16 @@ class ProductResource extends Resource
                     ])
                     ->columns(2),
 
-                Components\Section::make('Image')
+
+
+                Components\Section::make('SEO Settings')
                     ->schema([
-                        Components\ImageEntry::make('image')
-                            ->disk('public')
-                            ->width(500)
-                            ->height(350)
-                            ->label('Product Image')
+                        Components\TextEntry::make('meta_title'),
+                        Components\TextEntry::make('meta_description'),
+                        Components\TextEntry::make('meta_keywords'),
+                        Components\TextEntry::make('search_keywords'),
                     ])
-                    ->collapsible(),
-
-                Components\Section::make('Video')
-                    ->schema([
-                        Components\TextEntry::make('video.title')->label('Video Title'),
-                        Components\TextEntry::make('video.sub_title')->label('Video Subtitle'),
-                        Components\TextEntry::make('video.url')
-                            ->label('Video URL')
-                            ->formatStateUsing(fn($state) => $state ? "<a href='$state' target='_blank'>View Video</a>" : 'None')
-                            ->html(),
-                        Components\TextEntry::make('video.description')->label('Video Description'),
-                    ])
-                    ->columns(2)
-                    ->collapsible(),
-
-                Components\Section::make('Details')
-                    ->schema([
-                        Components\RepeatableEntry::make('details')
-                            ->schema([
-                                Components\ImageEntry::make('image')
-                                    ->label('Detail Image')
-                                    ->disk('public')
-                                    ->width(400)
-                                    ->height(350)
-                                    ->extraImgAttributes(['alt' => 'Detail Image', 'class' => 'object-cover'])
-                                    ->hidden(fn($state) => empty($state)),
-                                Components\TextEntry::make('image')
-                                    ->label('Detail Image')
-                                    ->default('No image uploaded')
-                                    ->hidden(fn($state) => !empty($state)),
-                                Components\RepeatableEntry::make('blocks')
-                                    ->schema([
-                                        Components\TextEntry::make('title')
-                                            ->label('Block Title')
-                                            ->columnSpanFull(),
-
-                                        Components\RepeatableEntry::make('lists')
-                                            ->label('List Items')
-                                            ->schema([
-                                                Components\TextEntry::make('item')
-                                                    ->label(' ')
-                                                    ->columnSpanFull(),
-                                            ])
-                                            ->columns(2)
-                                            ->columnSpanFull(),
-                                    ])
-                                    ->columns(2)
-                                    ->label('Blocks'),
-
-                            ])
-
-                            ->label('Product Details'),
-                    ])
-                    ->collapsible(),
-
-                Components\Section::make('Conclusion')
-                    ->schema([
-                        Components\TextEntry::make('conclusion.title')->label('Conclusion Title'),
-                        Components\TextEntry::make('conclusion.description')->label('Conclusion Description'),
-                    ])
-                    ->columns(1)
-                    ->collapsible(),
+                    ->columns(2),
             ]);
     }
 
@@ -552,8 +634,8 @@ class ProductResource extends Resource
     {
         return [
             RelationManagers\ImagesRelationManager::class,
-            RelationManagers\BundlesRelationManager::class,
             RelationManagers\VariationsRelationManager::class,
+            RelationManagers\BundlesRelationManager::class,
         ];
     }
 
@@ -570,5 +652,28 @@ class ProductResource extends Resource
     public static function getNavigationBadge(): ?string
     {
         return static::getModel()::count();
+    }
+
+    protected static function generateCombinations(array $attributes): array
+    {
+        $sets = array_map(function ($attribute) {
+            return array_map(function ($value) use ($attribute) {
+                return [$attribute['name'] => $value];
+            }, $attribute['values']);
+        }, $attributes);
+
+        $combinations = [[]];
+
+        foreach ($sets as $set) {
+            $tmp = [];
+            foreach ($combinations as $product) {
+                foreach ($set as $item) {
+                    $tmp[] = array_merge($product, $item);
+                }
+            }
+            $combinations = $tmp;
+        }
+
+        return $combinations;
     }
 }

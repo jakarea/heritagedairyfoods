@@ -16,7 +16,7 @@ class ImagesRelationManager extends RelationManager
     {
         return $form
             ->schema([
-                Forms\Components\FileUpload::make('image_url')
+                Forms\Components\FileUpload::make('image_path')
                     ->required()
                     ->image()
                     ->directory('product-images')
@@ -36,12 +36,25 @@ class ImagesRelationManager extends RelationManager
     {
         return $table
             ->columns([
-                Tables\Columns\ImageColumn::make('image_url')
+
+                Tables\Columns\ImageColumn::make('image_path')
                     ->disk('public')
                     ->height(100),
-                Tables\Columns\BooleanColumn::make('is_primary'),
-                Tables\Columns\TextColumn::make('variation.sku')
-                    ->label('Variation'),
+                Tables\Columns\BooleanColumn::make('is_primary')->label('Featured'),
+                Tables\Columns\BooleanColumn::make('variation_id')
+                    ->label('Variation')
+                    ->getStateUsing(fn($record) => !is_null($record->variation_id))
+                    ->trueIcon('heroicon-o-check-circle') // Green check
+                    ->falseIcon('heroicon-o-x-circle')    // Red cross
+                    ->trueColor('success')
+                    ->falseColor('danger'),
+                Tables\Columns\BooleanColumn::make('gallery_id')
+                    ->label('Gallery Image')
+                    ->getStateUsing(fn($record) => is_null($record->variation_id) && $record->is_primary === false)
+                    ->trueIcon('heroicon-o-check-circle') // Green check
+                    ->falseIcon('heroicon-o-x-circle')    // Red cross
+                    ->trueColor('success')
+                    ->falseColor('danger'),
             ])
             ->filters([
                 //

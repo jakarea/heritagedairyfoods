@@ -65,15 +65,16 @@ class ProductAttributeValueResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('productAttribute.name')
-                    ->label('Attribute')
-                    ->sortable()
-                    ->searchable(),
                 TextColumn::make('value')
                     ->sortable()
                     ->searchable(),
-                TextColumn::make('slug')
+                    TextColumn::make('slug')
                     ->sortable(),
+                    TextColumn::make('productAttribute.name')
+                    ->label('Attribute')
+                    ->sortable()
+                    ->searchable(),
+               
                 TextColumn::make('is_active')
                     ->label('Status')
                     ->badge()

@@ -23,7 +23,7 @@ class TagResource extends Resource
     protected static ?string $model = Tag::class;
     protected static ?string $navigationBadgeTooltip = 'The number of tags';
     protected static ?string $navigationGroup = 'Products Management';
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 2;
 
     public static function shouldRegisterNavigation(): bool
     {

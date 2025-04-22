@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class ProductAttributeValue extends Model
 {
     use SoftDeletes;
-    
+
     protected $fillable = ['product_attribute_id', 'value', 'is_active', 'slug'];
 
     public function productAttribute(): BelongsTo
@@ -19,6 +19,13 @@ class ProductAttributeValue extends Model
 
     public function products()
     {
-        return $this->belongsToMany(Product::class, 'product_attribute_product', 'product_attribute_value_id', 'product_id');
+        return $this->hasManyThrough(
+            Product::class,
+            ProductVariation::class,
+            'id', // ProductVariation id (local key on ProductVariationAttribute)
+            'id', // Product id
+            'id', // This model's id (ProductAttributeValue)
+            'product_id' // Foreign key on ProductVariation
+        );
     }
 }

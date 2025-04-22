@@ -28,16 +28,16 @@ class AdminPanelProvider extends PanelProvider
     {
         return $panel
             ->default()
-            ->id('admin')
+            ->id('admin') 
             ->font('Nunito')
             ->path('admin')
-            ->unsavedChangesAlerts()
+            // ->unsavedChangesAlerts()
             ->brandName('Heritage Dairy Foods')
             ->brandLogo(asset('images/logo.svg'))
             ->brandLogoHeight('2.5rem')
             ->favicon(asset('images/favicon.png'))
             ->maxContentWidth(MaxWidth::Full)
-            ->login() 
+            ->login()
             // ->spa()
             ->authGuard('web')
             ->passwordReset()
@@ -81,6 +81,12 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
+            ])
+            ->navigationGroups([
+                'Products Management',
+                'User Registry',
+                'Filament Shield',
+                'Account',
             ])
             ->navigationItems([
                 NavigationItem::make('Profile')
