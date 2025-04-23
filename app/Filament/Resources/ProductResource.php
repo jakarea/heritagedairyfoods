@@ -12,7 +12,7 @@ use App\Models\ProductAttributeValue;
 use App\Models\ProductImage;
 use App\Models\ProductVariation;
 use App\Models\ProductVariationAttribute;
-use Filament\Forms\Components\{TextInput, Select, Textarea, FileUpload, Grid, Toggle, Repeater, RichEditor, Section, Hidden, Radio};
+use Filament\Forms\Components\{Component, TextInput, Select, Textarea, FileUpload, Grid, Toggle, Repeater, RichEditor, Section, Hidden, Radio, TagsInput};
 use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Actions;
@@ -26,6 +26,7 @@ use Filament\Infolists\Components\Grid as ComponentsGrid;
 use Illuminate\Support\Str;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Notifications\Notification;
+use Illuminate\Support\Facades\Storage;
 
 class ProductResource extends Resource
 {
@@ -79,7 +80,7 @@ class ProductResource extends Resource
                         Select::make('categories')
                             ->multiple()
                             ->options(function () {
-                                return Category::all()->pluck('name', 'id');
+                                return Category::where('is_active', true)->pluck('name', 'id');
                             })
                             ->searchable()
                             ->preload()
@@ -98,7 +99,7 @@ class ProductResource extends Resource
                                     ->nullable(),
                                 FileUpload::make('image')
                                     ->image()
-                                    ->directory('category-images')
+                                    ->directory('products/category-images')
                                     ->nullable(),
                             ])
                             ->createOptionUsing(function (array $data) {
@@ -109,7 +110,7 @@ class ProductResource extends Resource
                         Select::make('tags')
                             ->multiple()
                             ->options(function () {
-                                return Tag::all()->pluck('name', 'id');
+                                return Tag::where('is_active', true)->pluck('name', 'id');
                             })
                             ->searchable()
                             ->preload()
@@ -128,7 +129,7 @@ class ProductResource extends Resource
                                     ->nullable(),
                                 FileUpload::make('image')
                                     ->image()
-                                    ->directory('tag-images')
+                                    ->directory('products/tag-images')
                                     ->nullable(),
                             ])
                             ->createOptionUsing(function (array $data) {
@@ -182,11 +183,6 @@ class ProductResource extends Resource
                                 'percentage' => 'Percentage',
                             ])
                             ->default('flat'),
-                        TextInput::make('weight')
-                            ->nullable()
-                            ->numeric()
-                            ->helperText('In grams only')
-                            ->maxLength(255),
                         TextInput::make('stock')
                             ->nullable()
                             ->numeric()
@@ -202,13 +198,15 @@ class ProductResource extends Resource
                 Section::make('Media')
                     ->schema([
                         Section::make('Featured Image')
-                            ->label('Featured Image')
+                            ->label('Featured Image') 
                             ->schema([
                                 FileUpload::make('featured_image')
                                     ->image()
                                     ->disk('public')
-                                    ->directory('product/featured_image')
-                                    ->preserveFilenames(),
+                                    ->visibility('public')
+                                    ->directory('products/featured-images')
+                                    ->preserveFilenames()
+
                             ])->columnSpan(1),
                         Section::make('Gallery Images')
                             ->label('Gallery Images')
@@ -217,7 +215,7 @@ class ProductResource extends Resource
                                     ->multiple()
                                     ->image()
                                     ->disk('public')
-                                    ->directory('product/gallery_images')
+                                    ->directory('products/gallery-images')
                                     ->preserveFilenames(),
                             ])->columnSpan(1)
                     ])->columns(2)
@@ -361,9 +359,20 @@ class ProductResource extends Resource
                                     ->columns(4)
                                     ->columnSpanFull(),
                             ])
-                            ->addActionLabel('Add Another Attribute')
-                            // ->collapsible()
-                            ->maxItems(3)
+                            ->addActionLabel('Add Another Attribute') 
+                            ->maxItems(3) 
+                            ->addable(function (callable $get) {
+                                $attributes = $get('product_attributes') ?? [];
+
+                                // Filter out incomplete ones
+                                $validAttributes = collect($attributes)->filter(function ($attr) {
+                                    return !empty($attr['product_attribute_id']) &&
+                                        !empty($attr['product_attribute_values']) &&
+                                        count($attr['product_attribute_values']) > 0;
+                                });
+
+                                return $validAttributes->count() >= 1;
+                            })
                             ->columnSpanFull(),
 
                         Actions::make([
@@ -448,7 +457,7 @@ class ProductResource extends Resource
                                     ->image()
                                     ->disk('public')
                                     ->label('Variation Image')
-                                    ->directory('products/variation_images')
+                                    ->directory('products/variation-images')
                                     ->imagePreviewHeight('100')->columnSpan(2),
                             ])
                             ->columns(6)
@@ -468,9 +477,20 @@ class ProductResource extends Resource
                         TextInput::make('meta_keywords')
                             ->nullable()
                             ->maxLength(255),
-                        TextInput::make('search_keywords')
-                            ->nullable()
-                            ->maxLength(65535),
+                        TagsInput::make('search_keywords')
+                            ->separator(',')
+                            ->reorderable()
+                            ->suggestions([
+                                'tailwindcss',
+                                'alpinejs',
+                                'laravel',
+                                'livewire',
+                            ])
+                            ->splitKeys(['Tab', ' '])
+                            ->nestedRecursiveRules([
+                                'min:2',
+                                'max:255',
+                            ]),
                         Textarea::make('meta_description')
                             ->nullable()
                             ->columnSpanFull()
@@ -492,7 +512,7 @@ class ProductResource extends Resource
                         return $record->featuredImage?->image_path ?? null;
                     })
                     ->extraImgAttributes(['class' => 'w-12 h-12 object-cover rounded-md'])
-                    ->defaultImageUrl(url('images/image-not-found-2.jpg')),
+                    ->defaultImageUrl(url('images/inf-icon.png')),
                 Tables\Columns\TextColumn::make('name')
                     ->searchable()
                     ->sortable(),
@@ -500,9 +520,6 @@ class ProductResource extends Resource
                     ->money('BDT')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('type')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('weight')
-                    ->suffix(' gm')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('discount_price')
                     ->money('BDT')
@@ -576,14 +593,41 @@ class ProductResource extends Resource
         return $infolist
             ->schema([
 
+                Components\TextEntry::make('search_keywords')
+                    ->label('Search Keywords')
+                    ->getStateUsing(function ($record) {
+                        $keywords = array_map('trim', explode(',', $record->search_keywords));
+                        return collect($keywords);
+                    })
+                    ->badge()
+                    ->copyable()
+                    ->html(),
+
                 Components\Section::make('Basic Information')
                     ->schema([
                         Components\TextEntry::make('name'),
                         Components\TextEntry::make('subtitle'),
                         Components\TextEntry::make('slug'),
                         Components\TextEntry::make('short_desc'),
-                        Components\TextEntry::make('weight'),
-                        Components\TextEntry::make('type'),
+                        Components\TextEntry::make('status')->badge()
+                            ->color(function ($state) {
+                                return match ($state) {
+                                    'active' => 'success',
+                                    'draft' => 'gray',
+                                    'out_of_stock' => 'danger',
+                                    'archived' => 'info',
+                                    default => 'secondary',
+                                };
+                            }),
+                        Components\TextEntry::make('type')->badge()
+                            ->color(function ($state) {
+                                return match ($state) {
+                                    'simple' => 'success',
+                                    'variable' => 'primary',
+                                    'bundle' => 'info',
+                                    default => 'secondary',
+                                };
+                            }),
                         Components\TextEntry::make('description')
                             ->html()
                             ->columnSpanFull(),
@@ -596,7 +640,7 @@ class ProductResource extends Resource
                         Components\TextEntry::make('discount_price')->money('bdt'),
                         Components\TextEntry::make('discount_in'),
                         Components\TextEntry::make('sku'),
-                        Components\TextEntry::make('status')->badge(),
+
                     ])
                     ->columns(2),
 
@@ -617,14 +661,11 @@ class ProductResource extends Resource
                     ])
                     ->columns(2),
 
-
-
                 Components\Section::make('SEO Settings')
                     ->schema([
                         Components\TextEntry::make('meta_title'),
-                        Components\TextEntry::make('meta_description'),
                         Components\TextEntry::make('meta_keywords'),
-                        Components\TextEntry::make('search_keywords'),
+                        Components\TextEntry::make('meta_description')->columnSpanFull(),
                     ])
                     ->columns(2),
             ]);

@@ -74,8 +74,7 @@ class AttributeResource extends Resource
                             ->label('Attribute Name')
                             ->weight('bold')
                             ->size(Infolists\Components\TextEntry\TextEntrySize::Large)
-                            ->color('primary')
-                            ->extraAttributes(['class' => 'bg-gradient-to-r from-primary-50 to-primary-100 p-3 rounded-lg']),
+                            ->color('primary'),
                         Infolists\Components\TextEntry::make('slug')
                             ->label('Slug')
                             ->icon('heroicon-o-link')
@@ -95,10 +94,12 @@ class AttributeResource extends Resource
                             ->color('success')
                             ->extraAttributes(['class' => 'mt-2']),
                         Infolists\Components\TextEntry::make('is_active')
-                            ->label('Status')
-                            ->formatStateUsing(fn($state) => $state ? 'Active' : 'Inactive')
                             ->badge()
-                            ->color(fn($state) => $state ? 'success' : 'danger'),
+                            ->label('Status')
+                            ->color(fn(string $state): string => match ($state) {
+                                '1' => 'success',
+                                default => 'danger',
+                            })->formatStateUsing(fn(bool $state): string => $state ? 'Active' : 'Inactive'),
                     ])
                     ->columns(2)
                     ->extraAttributes(['class' => 'bg-white rounded-xl shadow-sm border border-gray-200']),
@@ -132,7 +133,7 @@ class AttributeResource extends Resource
                     ->badge()
                     ->date(),
             ])
-            ->filters([ 
+            ->filters([
                 SelectFilter::make('is_active')
                     ->label('Active Status')
                     ->options([
@@ -194,11 +195,6 @@ class AttributeResource extends Resource
             ->defaultSort('name', 'asc');
     }
 
-    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
-    {
-        return parent::getEloquentQuery()->withTrashed();
-    }
-
     public static function getRelations(): array
     {
         return [
@@ -219,5 +215,10 @@ class AttributeResource extends Resource
     public static function getNavigationBadge(): ?string
     {
         return static::getModel()::count();
+    }
+
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->withTrashed();
     }
 }

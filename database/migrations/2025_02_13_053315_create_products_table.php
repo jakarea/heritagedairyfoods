@@ -28,8 +28,7 @@ return new class extends Migration
             $table->integer('stock')->default(0);
             $table->string('sku', 50)->unique()->nullable();
             $table->enum('status', ['active', 'draft', 'out_of_stock', 'archived'])->default('active');
-            $table->enum('type', ['simple', 'variable', 'bundle'])->default('simple');  
-            $table->decimal('weight', 8, 2)->nullable(); 
+            $table->enum('type', ['simple', 'variable', 'bundle'])->default('simple');   
             $table->json('categories')->nullable(); 
             $table->json('tags')->nullable();  
             $table->string('video_url', 255)->nullable();   

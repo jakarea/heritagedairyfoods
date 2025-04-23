@@ -71,7 +71,9 @@ class ProductAttributeValueResource extends Resource
                     TextColumn::make('slug')
                     ->sortable(),
                     TextColumn::make('productAttribute.name')
-                    ->label('Attribute')
+                    ->label('Attribute Name')
+                    ->badge()
+                    ->color('primary')
                     ->sortable()
                     ->searchable(),
                
@@ -154,11 +156,6 @@ class ProductAttributeValueResource extends Resource
             ->defaultSort('value', 'asc');
     }
 
-    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
-    {
-        return parent::getEloquentQuery()->withTrashed();
-    }
-
     public static function getRelations(): array
     {
         return [
@@ -178,5 +175,10 @@ class ProductAttributeValueResource extends Resource
     public static function getNavigationBadge(): ?string
     {
         return static::getModel()::count();
+    }
+
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->withTrashed();
     }
 }

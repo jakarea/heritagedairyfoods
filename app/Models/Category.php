@@ -5,16 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo; 
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Category extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes; 
 
-    protected $fillable = ['name', 'slug', 'parent_id', 'description', 'number_of_products', 'image'];
+    protected $fillable = ['parent_id', 'name', 'slug', 'description', 'number_of_products', 'image','is_active'];
 
     protected $casts = [
+        'is_active' => 'boolean',
         'number_of_products' => 'integer',
     ];
 
@@ -26,7 +27,7 @@ class Category extends Model
     public function children(): HasMany
     {
         return $this->hasMany(Category::class, 'parent_id');
-    }
+    } 
 
     public function getNumberOfProductsAttribute(): int
     {

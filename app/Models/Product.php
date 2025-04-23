@@ -21,7 +21,6 @@ class Product extends Model
         'sku',
         'status',
         'type',
-        'weight',
         'categories',
         'tags',
         'video_url',
@@ -35,6 +34,7 @@ class Product extends Model
     protected $casts = [
         'categories' => 'array',
         'tags' => 'array',
+        'search_keywords' => 'array',
         'base_price' => 'decimal:2',
         'discount_price' => 'decimal:2',
     ];
@@ -59,17 +59,43 @@ class Product extends Model
         return $this->hasMany(ProductVariation::class);
     }
 
-    public function ProductattributeValues()
+    public function productAttributes()
+    {
+         $items = $this->hasManyThrough(
+            ProductAttribute::class,
+            ProductVariationAttribute::class,
+            'product_variation_id',        // Foreign key on pivot table
+            'id',                          // Foreign key on ProductAttribute
+            'id',                          // Local key on Product
+            'product_attribute_id'         // Local key on pivot table
+        )->whereIn('product_variation_id', function ($query) {
+            $query->select('id')
+                ->from('product_variations')
+                ->where('product_id', $this->id);
+        })->distinct();
+
+        // dd($items);
+
+        return $items;
+    }
+
+
+    public function productAttributeValues()
     {
         return $this->hasManyThrough(
             ProductAttributeValue::class,
             ProductVariationAttribute::class,
-            'product_variation_id', // Foreign key on ProductVariationAttribute
-            'id',                   // Foreign key on ProductAttributeValue
-            'id',                   // Local key on Product
-            'product_attribute_value_id' // Local key on ProductVariationAttribute
-        );
+            'product_variation_id',
+            'id',
+            'id',
+            'product_attribute_value_id'
+        )->whereIn('product_variation_id', function ($query) {
+            $query->select('id')
+                ->from('product_variations')
+                ->where('product_id', $this->id);
+        })->distinct();
     }
+
 
     // Accessor to fetch Category records
     public function getCategoryRecordsAttribute()

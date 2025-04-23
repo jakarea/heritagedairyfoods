@@ -55,7 +55,7 @@ class VariationsRelationManager extends RelationManager
     {
         return $table
             ->columns([
-                Tables\Columns\ImageColumn::make('image.image_path')->disk('public')->width(200)->height(100)->defaultImageUrl(url('images/image-not-found-2.jpg')),
+                Tables\Columns\ImageColumn::make('image.image_path')->disk('public')->width(120)->height(80)->defaultImageUrl(url('images/inf-icon.png')),
                 Tables\Columns\TextColumn::make('name'),
                 Tables\Columns\TextColumn::make('sku'),
                 Tables\Columns\TextColumn::make('price')

@@ -8,15 +8,17 @@ use Filament\Forms;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Forms\Components\{TextInput, Select, Textarea, FileUpload};
-use Filament\Tables\Columns\{TextColumn, ImageColumn};
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Support\Str;
 use Filament\Infolists;
-use Filament\Tables\Actions\ActionGroup;
 use Filament\Infolists\Infolist;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Notifications\Notification;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Columns\{TextColumn, ImageColumn};
+use Filament\Forms\Components\{TextInput, Select, Textarea, FileUpload, Toggle};
+use Filament\Tables\Actions\{EditAction, DeleteAction, ViewAction, ForceDeleteAction, RestoreAction};
 
 class TagResource extends Resource
 {
@@ -45,33 +47,26 @@ class TagResource extends Resource
                                 return;
                             }
                             $set('slug', Str::slug($state));
-                        })->columnSpanFull(),
+                        }),
                     TextInput::make('slug')
                         ->required()
                         ->maxLength(255)
                         ->unique(Tag::class, 'slug', ignoreRecord: true),
-                        Select::make('is_active')
-                        ->label('Status')
-                        ->options([
-                            true => 'Active',
-                            false => 'Inactive',
-                        ])
-                        ->default(true)
-                        ->required()
-                        ->selectablePlaceholder(false)
-                        ->native(false),
                     Textarea::make('description')
                         ->nullable()
-                        ->maxLength(65535)
-                        ->columnSpanFull(),
-                    
+                        ->maxLength(65535),
+
                     FileUpload::make('image')
                         ->nullable()
                         ->image()
-                        ->directory('tags_images')
+                        ->directory('products/tag-images')
                         ->preserveFilenames()
-                        ->fetchFileInformation(false)
-                        ->columnSpanFull(),
+                        ->fetchFileInformation(false),
+                    Toggle::make('is_active')
+                        ->label('Active')
+                        ->live()
+                        ->dehydrateStateUsing(fn($state) => (bool) $state)
+                        ->default(true),
                 ])->columns(2)
 
             ]);
@@ -83,7 +78,7 @@ class TagResource extends Resource
             ->schema([
                 // Tag Details Section
                 Infolists\Components\Section::make('Tag Details')
-                    ->icon('heroicon-o-tag') 
+                    ->icon('heroicon-o-tag')
                     ->headerActions([
                         Infolists\Components\Actions\Action::make('edit')
                             ->label('Edit Tag')
@@ -93,14 +88,13 @@ class TagResource extends Resource
                     ])
                     ->schema([
                         Infolists\Components\Section::make([
-                            
+
                             Infolists\Components\Group::make([
                                 Infolists\Components\TextEntry::make('name')
                                     ->label('Tag Name')
                                     ->weight('bold')
                                     ->size(Infolists\Components\TextEntry\TextEntrySize::Large)
-                                    ->color('primary')
-                                    ->extraAttributes(['class' => 'bg-gradient-to-r from-primary-50 to-primary-100 p-3 rounded-lg']),
+                                    ->color('primary'),
                                 Infolists\Components\TextEntry::make('slug')
                                     ->label('Slug')
                                     ->icon('heroicon-o-link')
@@ -118,8 +112,15 @@ class TagResource extends Resource
                                     ->badge()
                                     ->color('success')
                                     ->extraAttributes(['class' => 'mt-2']),
+                                Infolists\Components\TextEntry::make('is_active')
+                                    ->badge()
+                                    ->label('Status')
+                                    ->color(fn(string $state): string => match ($state) {
+                                        '1' => 'success',
+                                        default => 'danger',
+                                    })->formatStateUsing(fn(bool $state): string => $state ? 'Active' : 'Inactive'),
                             ])->columnSpan(7),
-                            
+
                             Infolists\Components\Group::make([
                                 Infolists\Components\ImageEntry::make('image')
                                     ->label('Tag Image')
@@ -127,11 +128,11 @@ class TagResource extends Resource
                                     ->height(220)
                                     ->width(220)
                                     ->square()
-                                    ->defaultImageUrl(url('images/image-not-found-2.jpg'))
+                                    ->defaultImageUrl(url('images/inf-icon.png'))
                                     ->extraImgAttributes(['class' => 'ring-4 ring-primary-200 shadow-lg']),
                             ])->columnSpan(5),
 
-                        ])->columns(12), 
+                        ])->columns(12),
 
                         Infolists\Components\TextEntry::make('description')
                             ->label('Description')
@@ -153,7 +154,7 @@ class TagResource extends Resource
             ->columns([
                 ImageColumn::make('image')
                     ->extraImgAttributes(['class' => 'w-12 h-12 object-cover rounded-md'])
-                    ->defaultImageUrl(url('images/image-not-found-2.jpg')),
+                    ->defaultImageUrl(url('images/inf-icon.png')),
                 TextColumn::make('name')
                     ->searchable()
                     ->sortable(),
@@ -178,7 +179,7 @@ class TagResource extends Resource
             ])
             ->filters([
                 SelectFilter::make('is_active')
-                ->label('Filter by Status')
+                    ->label('Filter by Status')
                     ->options([
                         true => 'Active',
                         false => 'Inactive',
@@ -188,13 +189,48 @@ class TagResource extends Resource
                 ActionGroup::make([
                     Tables\Actions\ViewAction::make()->color('success'),
                     Tables\Actions\EditAction::make(),
-                    Tables\Actions\DeleteAction::make(),
+                    Tables\Actions\DeleteAction::make()
+                        ->requiresConfirmation()
+                        ->modalHeading('Delete Tag')
+                        ->modalDescription('Are you sure you want to delete this Tag? It will be moved to the trash.')
+                        ->modalButton('Confirm') 
+                        ->action(fn($record) => $record->delete())
+                        ->successNotification(
+                            Notification::make()
+                                ->success()
+                                ->title('Tag Deleted')
+                                ->body('The Tag has been moved to the trash.')
+                        ),
+                    RestoreAction::make()
+                        ->requiresConfirmation()
+                        ->modalHeading('Restore Tag')
+                        ->modalDescription('Are you sure you want to restore this Tag?')
+                        ->modalButton('Confirm')
+                        ->visible(fn($record) => $record->trashed())
+                        ->successNotification(
+                            Notification::make()
+                                ->success()
+                                ->title('Tag Restored')
+                                ->body('The Tag has been restored.')
+                        ),
+                    ForceDeleteAction::make()
+                        ->requiresConfirmation()
+                        ->modalHeading('Permanently Delete Tag')
+                        ->modalDescription('Are you sure you want to permanently delete this Tag? This action cannot be undone.')
+                        ->modalButton('Confirm')
+                        ->visible(fn($record) => $record->trashed())
+                        ->successNotification(
+                            Notification::make()
+                                ->success()
+                                ->title('Tag Permanently Deleted')
+                                ->body('The tag has been permanently deleted.')
+                        ),
                 ])
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                Tables\Actions\DeleteBulkAction::make(),
+                Tables\Actions\RestoreBulkAction::make(),
+                Tables\Actions\ForceDeleteBulkAction::make(),
             ]);
     }
 
@@ -216,5 +252,10 @@ class TagResource extends Resource
     public static function getNavigationBadge(): ?string
     {
         return static::getModel()::count();
+    }
+
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->withTrashed();
     }
 }

@@ -12,6 +12,10 @@ class ProductAttribute extends Model
     
     protected $fillable = ['name','slug','is_active'];
 
+    protected $casts = [
+        'is_active' => 'boolean', 
+    ];
+
     public function values(): HasMany
     {
         return $this->hasMany(ProductAttributeValue::class);

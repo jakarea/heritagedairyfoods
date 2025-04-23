@@ -19,7 +19,7 @@ class ImagesRelationManager extends RelationManager
                 Forms\Components\FileUpload::make('image_path')
                     ->required()
                     ->image()
-                    ->directory('product-images')
+                    ->directory('products/gallery-images')
                     ->preserveFilenames(),
                 Forms\Components\Toggle::make('is_primary')
                     ->default(false),
@@ -38,7 +38,9 @@ class ImagesRelationManager extends RelationManager
             ->columns([
 
                 Tables\Columns\ImageColumn::make('image_path')
+                    ->label('Image')
                     ->disk('public')
+                    // ->width(200)
                     ->height(100),
                 Tables\Columns\BooleanColumn::make('is_primary')->label('Featured'),
                 Tables\Columns\BooleanColumn::make('variation_id')

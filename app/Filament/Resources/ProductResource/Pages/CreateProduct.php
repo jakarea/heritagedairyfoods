@@ -3,11 +3,13 @@
 namespace App\Filament\Resources\ProductResource\Pages;
 
 use App\Filament\Resources\ProductResource;
+use App\Models\Category;
 use App\Models\ProductImage;
 use App\Models\Product;
 use App\Models\ProductAttributeValue;
 use App\Models\ProductVariation;
 use App\Models\ProductVariationAttribute;
+use App\Models\Tag;
 use Filament\Actions;
 use Illuminate\Support\Facades\DB;
 use Filament\Resources\Pages\CreateRecord;
@@ -22,10 +24,24 @@ class CreateProduct extends CreateRecord
         DB::transaction(function () {
             $product = $this->record;
             $data = $this->form->getState();
-        
+
+            // Handle categories
+            if (!empty($data['categories']) && is_array($data['categories'])) {
+                Category::whereIn('id', $data['categories'])->update([
+                    'number_of_products' => DB::raw('COALESCE(number_of_products, 0) + 1'),
+                ]);
+            }
+
+            // Handle tags
+            if (!empty($data['tags']) && is_array($data['tags'])) {
+                Tag::whereIn('id', $data['tags'])->update([
+                    'number_of_products' => DB::raw('COALESCE(number_of_products, 0) + 1'),
+                ]);
+            }
+
             // Prepare images
             $imagesToInsert = [];
-        
+
             // Featured image
             if (!empty($data['featured_image'])) {
                 $imagesToInsert[] = [
@@ -36,7 +52,7 @@ class CreateProduct extends CreateRecord
                     'updated_at' => now(),
                 ];
             }
-        
+
             // Gallery images
             if (!empty($data['gallery_images'])) {
                 foreach ($data['gallery_images'] as $image) {
@@ -49,11 +65,11 @@ class CreateProduct extends CreateRecord
                     ];
                 }
             }
-        
+
             if (!empty($imagesToInsert)) {
                 ProductImage::insert($imagesToInsert);
             }
-        
+
             // Variations
             if (!empty($data['product_variations'])) {
                 foreach ($data['product_variations'] as $index => $variationData) {
@@ -68,10 +84,10 @@ class CreateProduct extends CreateRecord
                         'weight' => $variationData['weight'],
                         'is_default' => $index === 0,
                     ]);
-        
+
                     // Variation attributes
                     $variationAttributes = [];
-        
+
                     if (!empty($data['product_attributes'])) {
                         foreach ($data['product_attributes'] as $attributeSet) {
                             foreach ($attributeSet['product_attribute_values'] as $value) {
@@ -85,11 +101,11 @@ class CreateProduct extends CreateRecord
                             }
                         }
                     }
-        
+
                     if (!empty($variationAttributes)) {
                         ProductVariationAttribute::insert($variationAttributes);
                     }
-        
+
                     // Variation image
                     if (!empty($variationData['image'])) {
                         ProductImage::create([

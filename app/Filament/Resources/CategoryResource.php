@@ -2,22 +2,22 @@
 
 namespace App\Filament\Resources;
 
-use App\Models\Category;
-use Filament\Forms;
 use Filament\Tables;
+use Filament\Infolists;
+use App\Models\Category;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
-use Filament\Resources\Resource;
 use Illuminate\Support\Str;
-use Filament\Notifications\Notification;
-use Filament\Forms\Components\{TextInput, Select, Textarea, FileUpload};
-use Filament\Tables\Columns\{TextColumn, ImageColumn};
-use Filament\Tables\Filters\SelectFilter;
-use App\Filament\Resources\CategoryResource\Pages;
-use Filament\Tables\Actions\ActionGroup;
-use Filament\Forms\Components\Section;
-use Filament\Infolists;
 use Filament\Infolists\Infolist;
+use Filament\Resources\Resource;
+use Filament\Notifications\Notification;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TrashedFilter;
+use App\Filament\Resources\CategoryResource\Pages;
+use Filament\Tables\Columns\{BadgeColumn, TextColumn, ImageColumn};
+use Filament\Tables\Actions\{EditAction, DeleteAction, ViewAction, ForceDeleteAction, RestoreAction};
+use Filament\Forms\Components\{TextInput, Select, Textarea, FileUpload, Toggle, Section}; 
 
 class CategoryResource extends Resource
 {
@@ -41,6 +41,7 @@ class CategoryResource extends Resource
                         ->live(debounce: 500)
                         ->afterStateUpdated(fn($state, callable $set) => $set('slug', Str::slug($state)))
                         ->maxLength(100)
+                        ->columnSpanFull()
                         ->unique(Category::class, 'name', ignoreRecord: true),
                     TextInput::make('slug')
                         ->required()
@@ -48,40 +49,33 @@ class CategoryResource extends Resource
                         ->unique(Category::class, 'slug', ignoreRecord: true)
                         ->disabled(fn($record) => $record !== null)
                         ->dehydrated(),
-                    Textarea::make('description')
-                        ->nullable()
-                        ->maxLength(65535)
-                        ->columnSpanFull(),
                     Select::make('parent_id')
                         ->label('Parent Category')
                         ->relationship('parent', 'name')
                         ->nullable()
                         ->searchable()
                         ->options(function () {
-                            // return Category::whereNull('parent_id')->pluck('name', 'id');
                             return Category::pluck('name', 'id');
                         }),
-
-                    Select::make('is_active')
-                        ->label('Status')
-                        ->options([
-                            true => 'Active',
-                            false => 'Inactive',
-                        ])
-                        ->default(true)
-                        ->required()
-                        ->selectablePlaceholder(false)
-                        ->native(false),
+                    Textarea::make('description')
+                        ->nullable()
+                        ->maxLength(65535),
 
                     FileUpload::make('image')
                         ->label('Category Image')
                         ->nullable()
                         ->image()
-                        ->directory('products/categories')
+                        ->directory('products/category-images')
                         ->preserveFilenames()
                         ->disk('public')
-                        ->visibility('public')
-                        ->columnSpanFull(),
+                        ->visibility('public'),
+
+                    Toggle::make('is_active')
+                        ->label('Active')
+                        ->live()
+                        ->dehydrateStateUsing(fn($state) => (bool) $state)
+                        ->default(true),
+
                 ])->columns(2),
             ]);
     }
@@ -107,8 +101,7 @@ class CategoryResource extends Resource
                                     ->label('Category Name')
                                     ->weight('bold')
                                     ->size(Infolists\Components\TextEntry\TextEntrySize::Large)
-                                    ->color('primary')
-                                    ->extraAttributes(['class' => 'bg-gradient-to-r from-primary-50 to-primary-100 p-3 rounded-lg']),
+                                    ->color('primary'),
                                 Infolists\Components\TextEntry::make('slug')
                                     ->label('Slug')
                                     ->icon('heroicon-o-link')
@@ -124,8 +117,14 @@ class CategoryResource extends Resource
                                     ->numeric()
                                     ->formatStateUsing(fn($state) => number_format($state))
                                     ->badge()
-                                    ->color('success')
-                                    ->extraAttributes(['class' => 'mt-2']),
+                                    ->color('info'),
+                                Infolists\Components\TextEntry::make('is_active')
+                                    ->badge()
+                                    ->label('Status')
+                                    ->color(fn(string $state): string => match ($state) {
+                                        '1' => 'success',
+                                        default => 'danger',
+                                    })->formatStateUsing(fn(bool $state): string => $state ? 'Active' : 'Inactive'),
                             ])->columnSpan(7),
 
                             Infolists\Components\Group::make([
@@ -135,7 +134,7 @@ class CategoryResource extends Resource
                                     ->height(220)
                                     ->width(220)
                                     ->square()
-                                    ->defaultImageUrl(url('images/image-not-found-2.jpg'))
+                                    ->defaultImageUrl(url('images/inf-icon.png'))
                                     ->extraImgAttributes(['class' => 'ring-4 ring-primary-200 shadow-lg']),
                             ])->columnSpan(5),
 
@@ -199,7 +198,7 @@ class CategoryResource extends Resource
             ->columns([
                 ImageColumn::make('image')
                     ->extraImgAttributes(['class' => 'w-12 h-12 object-cover rounded-md'])
-                    ->defaultImageUrl(url('images/image-not-found-2.jpg')),
+                    ->defaultImageUrl(url('images/inf-icon.png')),
                 TextColumn::make('name')->sortable()->searchable(),
                 TextColumn::make('slug')->sortable(),
                 TextColumn::make('parent.name')->label('Parent Category')->sortable(),
@@ -211,7 +210,7 @@ class CategoryResource extends Resource
                     ->color('success'),
                 TextColumn::make('number_of_products')->sortable()->badge()
                     ->color('info')->suffix(' products'),
-                TextColumn::make('is_active')
+                BadgeColumn::make('is_active')
                     ->label('Status')
                     ->badge()
                     ->sortable()
@@ -223,7 +222,7 @@ class CategoryResource extends Resource
                     ->relationship('parent', 'name')
                     ->label('Filter by Parent Category'),
                 SelectFilter::make('is_active')
-                ->label('Filter by Status')
+                    ->label('Filter by Status')
                     ->options([
                         true => 'Active',
                         false => 'Inactive',
@@ -231,30 +230,54 @@ class CategoryResource extends Resource
             ])
             ->actions([
                 ActionGroup::make([
-                    Tables\Actions\ViewAction::make()->color('success'),
-                    Tables\Actions\EditAction::make(),
-                    Tables\Actions\DeleteAction::make()
+                    ViewAction::make()->color('success'),
+                    EditAction::make(),
+                    DeleteAction::make()
                         ->requiresConfirmation()
                         ->modalHeading('Delete Category')
-                        ->modalDescription(
-                            fn($record) =>
-                            $record->children()->exists()
-                                ? 'This category has subcategories. Please delete them first before proceeding.'
-                                : 'Are you sure you want to delete this category?'
-                        )
-                        ->modalButton('Got it')
+                        ->modalDescription('Are you sure you want to delete this Category? It will be moved to the trash.')
+                        ->modalButton('Confirm')
                         ->before(function ($record, $action) {
                             if ($record->children()->exists()) {
                                 Notification::make()
                                     ->title('Cannot Delete')
-                                    ->body('This category has subcategories. Please delete them first.')
+                                    ->body('This Category has associated children. Please delete them first.')
                                     ->warning()
                                     ->send();
-
                                 $action->halt();
                             }
                         })
-                        ->action(fn($record) => $record->delete()),
+                        ->action(fn($record) => $record->delete())
+                        ->successNotification(
+                            Notification::make()
+                                ->success()
+                                ->title('Category Deleted')
+                                ->body('The Category has been moved to the trash.')
+                        ),
+                    RestoreAction::make()
+                        ->requiresConfirmation()
+                        ->modalHeading('Restore Category')
+                        ->modalDescription('Are you sure you want to restore this Category?')
+                        ->modalButton('Confirm')
+                        ->visible(fn($record) => $record->trashed())
+                        ->successNotification(
+                            Notification::make()
+                                ->success()
+                                ->title('Category Restored')
+                                ->body('The Category has been restored.')
+                        ),
+                    ForceDeleteAction::make()
+                        ->requiresConfirmation()
+                        ->modalHeading('Permanently Delete Category')
+                        ->modalDescription('Are you sure you want to permanently delete this Category? This action cannot be undone.')
+                        ->modalButton('Confirm')
+                        ->visible(fn($record) => $record->trashed())
+                        ->successNotification(
+                            Notification::make()
+                                ->success()
+                                ->title('category Permanently Deleted')
+                                ->body('The category has been permanently deleted.')
+                        ),
                 ])
 
             ])
@@ -272,7 +295,9 @@ class CategoryResource extends Resource
 
                             $action->halt(); // Stop the bulk delete action
                         }
-                    })
+                    }),
+                Tables\Actions\RestoreBulkAction::make(),
+                Tables\Actions\ForceDeleteBulkAction::make(),
             ]);
     }
 
@@ -294,5 +319,10 @@ class CategoryResource extends Resource
     public static function getNavigationBadge(): ?string
     {
         return static::getModel()::count();
+    }
+
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->withTrashed();
     }
 }
