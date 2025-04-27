@@ -25,19 +25,11 @@ class CreateProduct extends CreateRecord
             $product = $this->record;
             $data = $this->form->getState();
 
-            // Handle categories
-            if (!empty($data['categories']) && is_array($data['categories'])) {
-                Category::whereIn('id', $data['categories'])->update([
-                    'number_of_products' => DB::raw('COALESCE(number_of_products, 0) + 1'),
-                ]);
-            }
-
-            // Handle tags
-            if (!empty($data['tags']) && is_array($data['tags'])) {
-                Tag::whereIn('id', $data['tags'])->update([
-                    'number_of_products' => DB::raw('COALESCE(number_of_products, 0) + 1'),
-                ]);
-            }
+            // Increment number_of_products for categories and tags
+            Product::incrementProductCounts(
+                $data['categories'] ?? [],
+                $data['tags'] ?? []
+            );
 
             // Prepare images
             $imagesToInsert = [];
@@ -89,16 +81,32 @@ class CreateProduct extends CreateRecord
                     $variationAttributes = [];
 
                     if (!empty($data['product_attributes'])) {
-                        foreach ($data['product_attributes'] as $attributeSet) {
-                            foreach ($attributeSet['product_attribute_values'] as $value) {
-                                $variationAttributes[] = [
-                                    'product_variation_id' => $variation->id,
-                                    'product_attribute_id' => $attributeSet['product_attribute_id'],
-                                    'product_attribute_value_id' => $value,
-                                    'created_at' => now(),
-                                    'updated_at' => now(),
-                                ];
+                        $variationAttributes = [];
+                        
+                        // Iterate through each variation
+                        foreach ($data['variations'] as $variation) {
+                            $attributeMap = []; // To store unique attribute-value pairs for this variation
+                            
+                            // Process each attribute set
+                            foreach ($data['product_attributes'] as $attributeSet) {
+                                // Ensure only one value is selected per attribute for this variation
+                                if (!empty($attributeSet['product_attribute_values'])) {
+                                    // Take the first value or ensure a single value is selected
+                                    $value = $attributeSet['product_attribute_values'][0];
+                                    
+                                    // Store the attribute-value pair
+                                    $attributeMap[$attributeSet['product_attribute_id']] = [
+                                        'product_variation_id' => $variation->id,
+                                        'product_attribute_id' => $attributeSet['product_attribute_id'],
+                                        'product_attribute_value_id' => $value,
+                                        'created_at' => now(),
+                                        'updated_at' => now(),
+                                    ];
+                                }
                             }
+                            
+                            // Add the unique attribute-value pairs for this variation to the collection
+                            $variationAttributes = array_merge($variationAttributes, array_values($attributeMap));
                         }
                     }
 
@@ -117,21 +125,7 @@ class CreateProduct extends CreateRecord
                     }
                 }
             }
-        });
-
-        // Handle product attributes
-        // if (!empty($data['attributes'])) {
-        //     foreach ($data['attributes'] as $attributeData) {
-        //         if (!empty($attributeData['product_attribute_id']) && !empty($attributeData['product_attribute_values'])) {
-        //             foreach ($attributeData['product_attribute_values'] as $value) {
-        //                 ProductAttributeValue::create([
-        //                     'product_attribute_id' => $attributeData['product_attribute_id'],
-        //                     'value' => $value,
-        //                 ]);
-        //             }
-        //         }
-        //     }
-        // }
+        }); 
 
     }
 }

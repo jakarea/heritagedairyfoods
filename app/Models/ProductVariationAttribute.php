@@ -14,13 +14,13 @@ class ProductVariationAttribute extends Model
         return $this->belongsTo(ProductVariation::class, 'product_variation_id');
     }
 
+    public function attribute(): BelongsTo
+    {
+        return $this->belongsTo(ProductAttribute::class);
+    }
+    
     public function attributeValue(): BelongsTo
     {
         return $this->belongsTo(ProductAttributeValue::class, 'product_attribute_value_id');
-    }
-
-    public function attribute(): BelongsTo
-    {
-        return $this->belongsTo(ProductAttribute::class, 'product_attribute_id');
     }
 }

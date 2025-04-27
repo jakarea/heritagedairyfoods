@@ -2,11 +2,20 @@
 
 namespace App\Filament\Resources\ProductResource\RelationManagers;
 
+use App\Models\ProductAttribute;
+use App\Models\ProductAttributeValue;
+use App\Models\ProductVariation;
 use Filament\Forms;
 use Filament\Tables;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Forms\Form;
+use Illuminate\Support\Str;
 use Filament\Tables\Table;
+use Filament\Notifications\Notification;
+use Filament\Forms\Components\Actions;
+use Filament\Forms\Components\Actions\Action;
+use Filament\Forms\Components\{TextInput, Select, Textarea, FileUpload, Grid, Toggle, Repeater, RichEditor, Section, TagsInput};
+use Filament\Resources\Pages\EditRecord;
 
 class VariationsRelationManager extends RelationManager
 {
@@ -16,6 +25,10 @@ class VariationsRelationManager extends RelationManager
     {
         return $form
             ->schema([
+                Forms\Components\TextInput::make('name')
+                    ->required()
+                    ->disabled(fn($record) => $record !== null)
+                    ->columnSpanFull(),
                 Forms\Components\TextInput::make('price')
                     ->required()
                     ->numeric()
@@ -31,6 +44,10 @@ class VariationsRelationManager extends RelationManager
                     ])
                     ->default('flat')
                     ->required(),
+                Forms\Components\TextInput::make('weight')
+                    ->numeric()
+                    ->default(0)
+                    ->nullable(),
                 Forms\Components\TextInput::make('stock')
                     ->numeric()
                     ->default(0)
@@ -38,16 +55,258 @@ class VariationsRelationManager extends RelationManager
                 Forms\Components\TextInput::make('sku')
                     ->required()
                     ->unique(\App\Models\ProductVariation::class, 'sku', ignoreRecord: true),
-                Forms\Components\Select::make('attributes')
-                    ->multiple()
-                    ->relationship('attributes', 'attributeValue.value')
-                    ->options(function () {
-                        return \App\Models\ProductAttributeValue::with('attribute')->get()
-                            ->mapWithKeys(fn($value) => [$value->id => "{$value->attribute->name}: {$value->value}"])
-                            ->toArray();
-                    })
-                    ->searchable()
-                    ->preload(),
+
+                Section::make('Product Attributes')
+                    ->schema([
+                        Repeater::make('product_attributes')
+                            ->schema([
+                                Grid::make()
+                                    ->schema([
+                                        Select::make('product_attribute_id')
+                                            ->label('Attribute')
+                                            ->searchable()
+                                            ->options(function () {
+                                                return ProductAttribute::pluck('name', 'id')->toArray();
+                                            })
+                                            ->live(debounce: 500)
+                                            ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                                $allAttributes = $get('../../attributes') ?? [];
+                                                $selectedAttributes = collect($allAttributes)
+                                                    ->pluck('product_attribute_id')
+                                                    ->filter()
+                                                    ->toArray();
+
+                                                $currentId = $state;
+                                                $count = array_count_values($selectedAttributes)[$currentId] ?? 0;
+
+                                                if ($currentId && $count > 1) {
+                                                    $set('product_attribute_id', null);
+                                                    Notification::make()
+                                                        ->title('This attribute is already selected')
+                                                        ->warning()
+                                                        ->send();
+                                                }
+
+                                                // Reset values when attribute changes
+                                                $set('product_attribute_values', []);
+                                            })
+                                            ->suffixAction(
+                                                Action::make('create_attribute')
+                                                    ->icon('heroicon-o-plus')
+                                                    ->form([
+                                                        TextInput::make('name')
+                                                            ->label('Attribute Name')
+                                                            ->required()
+                                                            ->unique(ProductAttribute::class, 'name'),
+                                                    ])
+                                                    ->action(function (array $data, callable $set) {
+                                                        $baseSlug = Str::slug($data['name']);
+                                                        $slug = $baseSlug;
+                                                        $counter = 1;
+                                                        while (ProductAttribute::where('slug', $slug)->exists()) {
+                                                            $slug = "{$baseSlug}-{$counter}";
+                                                            $counter++;
+                                                        }
+
+                                                        $newAttribute = ProductAttribute::create([
+                                                            'name' => $data['name'],
+                                                            'slug' => $slug,
+                                                        ]);
+
+                                                        $set('product_attribute_id', $newAttribute->id);
+
+                                                        Notification::make()
+                                                            ->title('Attribute created')
+                                                            ->success()
+                                                            ->send();
+                                                    })
+                                                    ->modalHeading('Create New Attribute')
+                                                    ->modalSubmitActionLabel('Create')
+                                            ),
+                                        Select::make('product_attribute_values')
+                                            ->label('Attribute Values')
+                                            ->multiple() // Allow multiple selections
+                                            ->options(function (callable $get) {
+                                                $attributeId = $get('product_attribute_id');
+                                                if ($attributeId) {
+                                                    return ProductAttributeValue::where('product_attribute_id', $attributeId)
+                                                        ->pluck('value', 'id')
+                                                        ->toArray();
+                                                }
+                                                return [];
+                                            })
+                                            ->visible(function (callable $get) {
+                                                return !empty($get('product_attribute_id'));
+                                            })
+                                            ->live(debounce: 500)
+                                            ->columnSpan(2)
+                                            ->suffixAction(
+                                                Action::make('add_attribute_value')
+                                                    ->icon('heroicon-o-plus')
+                                                    ->form([
+                                                        TextInput::make('value')
+                                                            ->label('New Attribute Value')
+                                                            ->required(),
+                                                    ])
+                                                    ->action(function (array $data, callable $get, callable $set) {
+                                                        $attributeId = $get('product_attribute_id');
+                                                        if (!$attributeId) {
+                                                            Notification::make()
+                                                                ->title('Please select an attribute first')
+                                                                ->warning()
+                                                                ->send();
+                                                            return;
+                                                        }
+
+                                                        $baseSlug = Str::slug($data['value']);
+                                                        $slug = $baseSlug;
+                                                        $counter = 1;
+                                                        while (ProductAttributeValue::where('slug', $slug)->exists()) {
+                                                            $slug = "{$baseSlug}-{$counter}";
+                                                            $counter++;
+                                                        }
+
+                                                        $newValue = ProductAttributeValue::create([
+                                                            'product_attribute_id' => $attributeId,
+                                                            'value' => $data['value'],
+                                                            'slug' => $slug,
+                                                        ]);
+
+                                                        $currentValues = $get('product_attribute_values') ?? [];
+                                                        $currentValues[] = (string) $newValue->id; // Ensure string for Select
+                                                        $set('product_attribute_values', $currentValues);
+
+                                                        Notification::make()
+                                                            ->title('Attribute value added')
+                                                            ->success()
+                                                            ->send();
+                                                    })
+                                                    ->modalHeading('Add New Attribute Value')
+                                                    ->modalSubmitActionLabel('Add')
+                                                    ->visible(function (callable $get) {
+                                                        return !empty($get('product_attribute_id'));
+                                                    })
+                                                    ->disabled(function (callable $get) {
+                                                        return empty($get('product_attribute_id'));
+                                                    })
+                                            ),
+                                    ])
+                                    ->columns(4)
+                                    ->columnSpanFull(),
+                            ])
+                            ->addActionLabel('Add Another Attribute')
+                            ->maxItems(3)
+                            ->addable(function (callable $get) {
+                                $attributes = $get('product_attributes') ?? [];
+
+                                // Filter out incomplete ones
+                                $validAttributes = collect($attributes)->filter(function ($attr) {
+                                    return !empty($attr['product_attribute_id']) &&
+                                        !empty($attr['product_attribute_values']) &&
+                                        count($attr['product_attribute_values']) > 0;
+                                });
+
+                                return $validAttributes->count() >= 1;
+                            })
+                            ->columnSpanFull(),
+
+                        Actions::make([
+                            Action::make('generate_variants')
+                                ->label('Generate Variants')
+                                ->visible(function (callable $get) {
+                                    $attributes = $get('product_attributes') ?? [];
+
+                                    // Filter out incomplete ones
+                                    $validAttributes = collect($attributes)->filter(function ($attr) {
+                                        return !empty($attr['product_attribute_id']) &&
+                                            !empty($attr['product_attribute_values']) &&
+                                            count($attr['product_attribute_values']) > 0;
+                                    });
+
+                                    return $validAttributes->count() >= 2;
+                                })
+                                ->action(function (callable $get, callable $set) {
+                                    $attributes = collect($get('product_attributes'))->filter(function ($attr) {
+                                        return !empty($attr['product_attribute_id']) &&
+                                            !empty($attr['product_attribute_values']);
+                                    })->map(function ($attr) {
+                                        $attribute = ProductAttribute::find($attr['product_attribute_id']);
+                                        if (!$attribute) {
+                                            return null;
+                                        }
+
+                                        return [
+                                            'name' => $attribute->name,
+                                            'values' => ProductAttributeValue::whereIn('id', $attr['product_attribute_values'])->pluck('value')->toArray(),
+                                        ];
+                                    })->filter()->toArray();
+
+                                    $combinations = self::generateCombinations($attributes);
+
+                                    $variantData = collect($combinations)->map(function ($combo) {
+                                        $name = implode('-', array_values($combo));
+                                        return [
+                                            'name' => $name,
+                                            'sku' => strtoupper(Str::random(8)),
+                                            'price' => 0,
+                                            'stock' => 0,
+                                            'weight' => 0,
+                                            'is_default' => false,
+                                        ];
+                                    })->toArray();
+
+                                    $set('product_variations', $variantData);
+                                }),
+
+                        ]),
+                    ])
+                    ->columnSpanFull()
+                    ->hidden(fn($livewire) => $livewire instanceof EditRecord),
+
+                Section::make('Product Variations')
+                    ->schema([
+                        Repeater::make('product_variations')
+                            ->label('Generated Variants')
+                            ->schema([
+
+                                Grid::make(6)
+                                    ->schema([
+                                        TextInput::make('name')
+                                            ->label('Variation Name')
+                                            ->required(),
+                                        TextInput::make('sku')->required(),
+                                        TextInput::make('price')->numeric()->required(),
+                                        TextInput::make('discount_price')->numeric(),
+                                        Select::make('discount_in')
+                                            ->options([
+                                                'flat' => 'Flat',
+                                                'percentage' => 'Percentage',
+                                            ])
+                                            ->required()
+                                            ->default('flat'),
+                                        TextInput::make('stock')->numeric()->required(),
+                                        TextInput::make('weight')->numeric(),
+                                    ])->columnSpan(4)->columns(4),
+
+
+                                FileUpload::make('image')
+                                    ->image()
+                                    ->disk('public')
+                                    ->label('Variation Image')
+                                    ->directory('products/variation-images')
+                                    ->imagePreviewHeight('100')->columnSpan(2),
+                            ])
+                            ->columns(6)
+                            ->default([])
+                            ->addable(false)
+                            ->reorderable(false)
+                            ->hidden(fn(callable $get) => count($get('product_attributes') ?? []) < 1)
+                    ])
+                    ->hidden(fn($livewire) => $livewire instanceof EditRecord),
+
+                Forms\Components\Toggle::make('is_default')
+                    ->default(false),
+
             ]);
     }
 
@@ -67,8 +326,23 @@ class VariationsRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('weight'),
                 Tables\Columns\TextColumn::make('stock'),
                 Tables\Columns\BooleanColumn::make('is_default')
-                    ->label('Default Variation') 
-                 
+                    ->label('Default Variation'),
+                Tables\Columns\TextColumn::make('directAttributes')
+                    ->label('Attributes')
+                    ->formatStateUsing(function ($record) {
+                        $attributes = $record->directAttributes;
+                        $formattedAttributes = $attributes->map(function ($attribute) {
+                            $attributeName = $attribute->name;
+                            $selectedValue = $attribute->values->firstWhere('id', $attribute->pivot->product_attribute_value_id);
+                            $attributeValue = $selectedValue ? $selectedValue->value : 'N/A';
+                            return "{$attributeName}: {$attributeValue}";
+                        })->implode(', ');
+
+                        return $formattedAttributes ?: 'No attributes';
+                    })
+                    ->sortable(false)
+                    ->searchable(false)
+
             ])
             ->filters([
                 //
@@ -83,5 +357,10 @@ class VariationsRelationManager extends RelationManager
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
             ]);
+    }
+
+    public static function eagerLoad(): array
+    {
+        return ['attributes.attribute', 'attributes.attributeValue'];
     }
 }

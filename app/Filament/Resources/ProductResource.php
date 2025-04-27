@@ -4,29 +4,26 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProductResource\Pages;
 use App\Filament\Resources\ProductResource\RelationManagers;
-use App\Models\Category;
 use App\Models\Tag;
-use App\Models\Product;
-use App\Models\ProductAttribute;
-use App\Models\ProductAttributeValue;
-use App\Models\ProductImage;
-use App\Models\ProductVariation;
-use App\Models\ProductVariationAttribute;
-use Filament\Forms\Components\{Component, TextInput, Select, Textarea, FileUpload, Grid, Toggle, Repeater, RichEditor, Section, Hidden, Radio, TagsInput};
-use Filament\Forms\Components\Actions\Action;
-use Filament\Forms\Components\Placeholder;
-use Filament\Forms\Components\Actions;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
 use Filament\Tables;
+use App\Models\Product;
+use App\Models\Category;
+use Filament\Forms\Form;
 use Filament\Tables\Table;
+use Illuminate\Support\Str;
+use Filament\Resources\Resource;
+use App\Models\ProductAttribute;
 use Filament\Infolists\Infolist;
 use Filament\Infolists\Components;
-use Filament\Infolists\Components\Grid as ComponentsGrid;
-use Illuminate\Support\Str;
+use App\Models\ProductAttributeValue;
+use Filament\Forms\Components\Actions;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Notifications\Notification;
-use Illuminate\Support\Facades\Storage;
+use Filament\Forms\Components\Actions\Action; 
+use Filament\Resources\Pages\EditRecord;
+use Filament\Tables\Actions\{EditAction, DeleteAction, ViewAction, ForceDeleteAction, RestoreAction};
+use Filament\Forms\Components\{TextInput, Select, Textarea, FileUpload, Grid, Toggle, Repeater, RichEditor, Section, TagsInput};
+
 
 class ProductResource extends Resource
 {
@@ -195,10 +192,10 @@ class ProductResource extends Resource
                     ])
                     ->columns(3),
 
-                Section::make('Media')
+                    Section::make('Media')
                     ->schema([
                         Section::make('Featured Image')
-                            ->label('Featured Image') 
+                            ->label('Featured Image')
                             ->schema([
                                 FileUpload::make('featured_image')
                                     ->image()
@@ -206,8 +203,9 @@ class ProductResource extends Resource
                                     ->visibility('public')
                                     ->directory('products/featured-images')
                                     ->preserveFilenames()
-
-                            ])->columnSpan(1),
+                            ])
+                            ->columnSpan(1),
+                
                         Section::make('Gallery Images')
                             ->label('Gallery Images')
                             ->schema([
@@ -217,9 +215,12 @@ class ProductResource extends Resource
                                     ->disk('public')
                                     ->directory('products/gallery-images')
                                     ->preserveFilenames(),
-                            ])->columnSpan(1)
-                    ])->columns(2)
-                    ->columnSpanFull(),
+                            ])
+                            ->columnSpan(1)
+                    ])
+                    ->columns(2)
+                    ->columnSpanFull()
+                    ->hidden(fn ($livewire) => $livewire instanceof EditRecord),
 
                 Section::make('Product Attributes')
                     ->schema([
@@ -359,8 +360,8 @@ class ProductResource extends Resource
                                     ->columns(4)
                                     ->columnSpanFull(),
                             ])
-                            ->addActionLabel('Add Another Attribute') 
-                            ->maxItems(3) 
+                            ->addActionLabel('Add Another Attribute')
+                            ->maxItems(3)
                             ->addable(function (callable $get) {
                                 $attributes = $get('product_attributes') ?? [];
 
@@ -425,7 +426,8 @@ class ProductResource extends Resource
 
                         ]),
                     ])
-                    ->columnSpanFull(),
+                    ->columnSpanFull()
+                    ->hidden(fn ($livewire) => $livewire instanceof EditRecord),
 
                 Section::make('Product Variations')
                     ->schema([
@@ -466,7 +468,8 @@ class ProductResource extends Resource
                             ->reorderable(false)
                             ->hidden(fn(callable $get) => count($get('product_attributes') ?? []) < 1)
 
-                    ]),
+                    ])
+                    ->hidden(fn ($livewire) => $livewire instanceof EditRecord),
 
                 Section::make('SEO Settings')
                     ->schema([
@@ -486,7 +489,7 @@ class ProductResource extends Resource
                                 'laravel',
                                 'livewire',
                             ])
-                            ->splitKeys(['Tab', ' '])
+                            ->splitKeys(['Tab', ','])
                             ->nestedRecursiveRules([
                                 'min:2',
                                 'max:255',
@@ -578,13 +581,53 @@ class ProductResource extends Resource
             ])
             ->actions([
                 ActionGroup::make([
-                    Tables\Actions\ViewAction::make()->color('success'),
-                    Tables\Actions\EditAction::make(),
-                    Tables\Actions\DeleteAction::make(),
+                    ViewAction::make()->color('success'),
+                    EditAction::make(),
+                    DeleteAction::make()
+                        ->requiresConfirmation()
+                        ->modalHeading('Delete Product')
+                        ->modalDescription('Are you sure you want to delete this Product? It will be moved to the trash.')
+                        ->modalSubmitActionLabel('Confirm')
+                        ->before(function ($record) {
+                            Product::decrementProductCounts($record->categories ?? [], $record->tags ?? []);
+                        })
+                        ->action(fn($record) => $record->delete())
+                        ->successNotification(
+                            Notification::make()
+                                ->success()
+                                ->title('Product Deleted')
+                                ->body('The Product has been moved to the trash.')
+                        ),
+                    RestoreAction::make()
+                        ->requiresConfirmation()
+                        ->modalHeading('Restore Product')
+                        ->modalDescription('Are you sure you want to restore this Product?')
+                        ->modalSubmitActionLabel('Confirm')
+                        ->visible(fn($record) => $record->trashed())
+                        ->successNotification(
+                            Notification::make()
+                                ->success()
+                                ->title('Product Restored')
+                                ->body('The Product has been restored.')
+                        ),
+                    ForceDeleteAction::make()
+                        ->requiresConfirmation()
+                        ->modalHeading('Permanently Delete Product')
+                        ->modalDescription('Are you sure you want to permanently delete this Product? This action cannot be undone.')
+                        ->modalSubmitActionLabel('Confirm')
+                        ->visible(fn($record) => $record->trashed())
+                        ->successNotification(
+                            Notification::make()
+                                ->success()
+                                ->title('Product Permanently Deleted')
+                                ->body('The Product has been permanently deleted.')
+                        ),
                 ])
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
+                Tables\Actions\RestoreBulkAction::make(),
+                Tables\Actions\ForceDeleteBulkAction::make(),
             ]);
     }
 
@@ -592,7 +635,6 @@ class ProductResource extends Resource
     {
         return $infolist
             ->schema([
-
                 Components\TextEntry::make('search_keywords')
                     ->label('Search Keywords')
                     ->getStateUsing(function ($record) {
@@ -640,7 +682,6 @@ class ProductResource extends Resource
                         Components\TextEntry::make('discount_price')->money('bdt'),
                         Components\TextEntry::make('discount_in'),
                         Components\TextEntry::make('sku'),
-
                     ])
                     ->columns(2),
 
@@ -676,7 +717,7 @@ class ProductResource extends Resource
         return [
             RelationManagers\ImagesRelationManager::class,
             RelationManagers\VariationsRelationManager::class,
-            RelationManagers\BundlesRelationManager::class,
+            // RelationManagers\BundlesRelationManager::class,
         ];
     }
 
@@ -716,5 +757,10 @@ class ProductResource extends Resource
         }
 
         return $combinations;
+    }
+
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->withTrashed();
     }
 }

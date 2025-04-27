@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class ProductVariation extends Model
 {
@@ -30,14 +31,21 @@ class ProductVariation extends Model
         return $this->belongsTo(Product::class);
     }
 
-    public function image(): HasMany
+    public function image(): HasOne
     {
-        return $this->hasMany(ProductImage::class, 'variation_id');
+        return $this->hasOne(ProductImage::class, 'variation_id');
     }
 
     public function attributes(): HasMany
     {
-        return $this->hasMany(ProductVariationAttribute::class);
+        return $this->hasMany(ProductVariationAttribute::class, 'product_variation_id');
+    }
+
+    public function directAttributes()
+    {
+        return $this->belongsToMany(ProductAttribute::class, 'product_variation_attributes', 'product_variation_id', 'product_attribute_id')
+            ->withPivot('product_attribute_value_id')
+            ->with(['values']);
     }
 
     public function productAttributeValues()

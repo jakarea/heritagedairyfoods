@@ -62,6 +62,7 @@ class TagResource extends Resource
                         ->directory('products/tag-images')
                         ->preserveFilenames()
                         ->fetchFileInformation(false),
+                        
                     Toggle::make('is_active')
                         ->label('Active')
                         ->live()
@@ -165,11 +166,7 @@ class TagResource extends Resource
                     ->searchable()
                     ->limit(50)
                     ->tooltip(fn(?string $state): ?string => $state),
-                TextColumn::make('number_of_products')
-                    ->badge()
-                    ->color('info')
-                    ->suffix(' products')
-                    ->sortable(),
+                TextColumn::make('number_of_products')->badge()->color('info'),
                 TextColumn::make('is_active')
                     ->label('Status')
                     ->badge()
@@ -187,13 +184,13 @@ class TagResource extends Resource
             ])
             ->actions([
                 ActionGroup::make([
-                    Tables\Actions\ViewAction::make()->color('success'),
-                    Tables\Actions\EditAction::make(),
-                    Tables\Actions\DeleteAction::make()
+                    ViewAction::make()->color('success'),
+                    EditAction::make(),
+                    DeleteAction::make()
                         ->requiresConfirmation()
                         ->modalHeading('Delete Tag')
                         ->modalDescription('Are you sure you want to delete this Tag? It will be moved to the trash.')
-                        ->modalButton('Confirm') 
+                        ->modalSubmitActionLabel('Confirm')
                         ->action(fn($record) => $record->delete())
                         ->successNotification(
                             Notification::make()
@@ -205,7 +202,7 @@ class TagResource extends Resource
                         ->requiresConfirmation()
                         ->modalHeading('Restore Tag')
                         ->modalDescription('Are you sure you want to restore this Tag?')
-                        ->modalButton('Confirm')
+                        ->modalSubmitActionLabel('Confirm')
                         ->visible(fn($record) => $record->trashed())
                         ->successNotification(
                             Notification::make()
@@ -217,7 +214,7 @@ class TagResource extends Resource
                         ->requiresConfirmation()
                         ->modalHeading('Permanently Delete Tag')
                         ->modalDescription('Are you sure you want to permanently delete this Tag? This action cannot be undone.')
-                        ->modalButton('Confirm')
+                        ->modalSubmitActionLabel('Confirm')
                         ->visible(fn($record) => $record->trashed())
                         ->successNotification(
                             Notification::make()

@@ -27,10 +27,5 @@ class Tag extends Model
     protected $casts = [
         'is_active' => 'boolean',
         'number_of_products' => 'integer',
-    ];
-
-    public function getNumberOfProductsAttribute(): int
-    {
-        return Product::whereJsonContains('tags', $this->name)->count();
-    }
+    ]; 
 }

@@ -19,16 +19,32 @@ class ImagesRelationManager extends RelationManager
                 Forms\Components\FileUpload::make('image_path')
                     ->required()
                     ->image()
-                    ->directory('products/gallery-images')
-                    ->preserveFilenames(),
-                Forms\Components\Toggle::make('is_primary')
-                    ->default(false),
-                Forms\Components\Select::make('variation_id')
-                    ->label('Variation')
-                    ->options(function (callable $get) {
-                        return \App\Models\ProductVariation::where('product_id', $get('product_id'))->pluck('sku', 'id');
-                    })
-                    ->nullable(),
+                    ->preserveFilenames()
+                    ->directory(function (callable $get) {
+                        $isPrimary = $get('is_primary');
+                        $variationId = $get('variation_id');
+
+                        if ($isPrimary) {
+                            return 'products/featured-images';
+                        }
+
+                        if (is_null($variationId)) {
+                            return 'products/gallery-images';
+                        }
+
+                        return 'products/variation-images';
+                    }),
+                // Forms\Components\Toggle::make('is_primary')
+                //     ->default(false)
+                //     ->visible(fn (string $context): bool => $context === 'edit'),
+                // Forms\Components\Select::make('variation_id')
+                //     ->label('Variation')
+                //     ->options(function () {
+                //         $product = $this->getRelationship()->getParent();
+                //         return \App\Models\ProductVariation::where('product_id', $product->id)->pluck('name', 'id');
+                //     })
+                //     ->nullable()
+                //     ->visible(fn (string $context): bool => $context === 'edit'),
             ]);
     }
 
@@ -62,7 +78,12 @@ class ImagesRelationManager extends RelationManager
                 //
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make(),
+                Tables\Actions\CreateAction::make()
+                    ->mutateFormDataUsing(function (array $data): array {
+                        $data['is_primary'] = false;
+                        $data['variation_id'] = null;
+                        return $data;
+                    }),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

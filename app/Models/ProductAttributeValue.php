@@ -13,13 +13,18 @@ class ProductAttributeValue extends Model
     protected $fillable = ['product_attribute_id', 'value', 'is_active', 'slug'];
 
     protected $casts = [
-        'is_active' => 'boolean', 
+        'is_active' => 'boolean',
     ];
 
     public function productAttribute(): BelongsTo
     {
         return $this->belongsTo(ProductAttribute::class, 'product_attribute_id')->where('is_active', true);
     }
+
+    // public function attribute()
+    // {
+    //     return $this->belongsTo(ProductAttribute::class, 'product_attribute_id')->where('is_active', true);
+    // }
 
     public function products()
     {

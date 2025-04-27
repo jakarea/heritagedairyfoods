@@ -3,11 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany; 
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 
 class Product extends Model
 {
+    use HasFactory, SoftDeletes;
+
     protected $fillable = [
         'name',
         'subtitle',
@@ -96,7 +101,6 @@ class Product extends Model
         })->distinct();
     }
 
-
     // Accessor to fetch Category records
     public function getCategoryRecordsAttribute()
     {
@@ -107,5 +111,78 @@ class Product extends Model
     public function getTagRecordsAttribute()
     {
         return Tag::whereIn('id', $this->tags ?? [])->get();
+    }
+
+    /**
+     * Increment number_of_products for given categories and tags.
+     *
+     * @param array $categoryIds
+     * @param array $tagIds
+     * @return void
+     */
+    public static function incrementProductCounts(array $categoryIds, array $tagIds)
+    {
+        DB::transaction(function () use ($categoryIds, $tagIds) {
+            if (!empty($categoryIds)) {
+                Category::whereIn('id', $categoryIds)->update([
+                    'number_of_products' => DB::raw('COALESCE(number_of_products, 0) + 1'),
+                ]);
+                foreach ($categoryIds as $categoryId) {
+                    Cache::forget('category_' . $categoryId . '_products');
+                }
+            }
+
+            if (!empty($tagIds)) {
+                Tag::whereIn('id', $tagIds)->update([
+                    'number_of_products' => DB::raw('COALESCE(number_of_products, 0) + 1'),
+                ]);
+                foreach ($tagIds as $tagId) {
+                    Cache::forget('tag_' . $tagId . '_products');
+                }
+            }
+        });
+    }
+
+    /**
+     * Decrement number_of_products for given categories and tags.
+     *
+     * @param array $categoryIds
+     * @param array $tagIds
+     * @return void
+     */
+    public static function decrementProductCounts(array $categoryIds, array $tagIds)
+    {
+        DB::transaction(function () use ($categoryIds, $tagIds) {
+            if (!empty($categoryIds)) {
+                Category::whereIn('id', $categoryIds)->update([
+                    'number_of_products' => DB::raw('GREATEST(COALESCE(number_of_products, 0) - 1, 0)'),
+                ]);
+                foreach ($categoryIds as $categoryId) {
+                    Cache::forget('category_' . $categoryId . '_products');
+                }
+            }
+
+            if (!empty($tagIds)) {
+                Tag::whereIn('id', $tagIds)->update([
+                    'number_of_products' => DB::raw('GREATEST(COALESCE(number_of_products, 0) - 1, 0)'),
+                ]);
+                foreach ($tagIds as $tagId) {
+                    Cache::forget('tag_' . $tagId . '_products');
+                }
+            }
+        });
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function ($product) {
+            static::decrementProductCounts($product->categories ?? [], $product->tags ?? []);
+        });
+
+        static::restored(function ($product) {
+            static::incrementProductCounts($product->categories ?? [], $product->tags ?? []);
+        });
     }
 }

@@ -17,7 +17,7 @@ use Filament\Tables\Filters\TrashedFilter;
 use App\Filament\Resources\CategoryResource\Pages;
 use Filament\Tables\Columns\{BadgeColumn, TextColumn, ImageColumn};
 use Filament\Tables\Actions\{EditAction, DeleteAction, ViewAction, ForceDeleteAction, RestoreAction};
-use Filament\Forms\Components\{TextInput, Select, Textarea, FileUpload, Toggle, Section}; 
+use Filament\Forms\Components\{TextInput, Select, Textarea, FileUpload, Toggle, Section};
 
 class CategoryResource extends Resource
 {
@@ -207,9 +207,8 @@ class CategoryResource extends Resource
                     ->state(fn($record) => $record->children()->count())
                     ->sortable()
                     ->badge()
-                    ->color('success'),
-                TextColumn::make('number_of_products')->sortable()->badge()
-                    ->color('info')->suffix(' products'),
+                    ->color('primary'),
+                TextColumn::make('number_of_products')->badge()->color('info'),
                 BadgeColumn::make('is_active')
                     ->label('Status')
                     ->badge()

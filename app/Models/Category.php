@@ -27,10 +27,5 @@ class Category extends Model
     public function children(): HasMany
     {
         return $this->hasMany(Category::class, 'parent_id');
-    } 
-
-    public function getNumberOfProductsAttribute(): int
-    {
-        return Product::whereJsonContains('categories', $this->id)->count();
-    }
+    }  
 }
