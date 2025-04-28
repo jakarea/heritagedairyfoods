@@ -14,8 +14,9 @@ use Filament\Tables\Table;
 use Filament\Notifications\Notification;
 use Filament\Forms\Components\Actions;
 use Filament\Forms\Components\Actions\Action;
-use Filament\Forms\Components\{TextInput, Select, Textarea, FileUpload, Grid, Toggle, Repeater, RichEditor, Section, TagsInput};
 use Filament\Resources\Pages\EditRecord;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Forms\Components\{TextInput, Select, Textarea, FileUpload, Grid, Toggle, Repeater, RichEditor, Section, TagsInput};
 
 class VariationsRelationManager extends RelationManager
 {
@@ -28,33 +29,40 @@ class VariationsRelationManager extends RelationManager
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->disabled(fn($record) => $record !== null)
-                    ->columnSpanFull(),
+                    ->columnSpanFull()
+                    ->hidden(fn ($operation) => $operation === 'create'),
                 Forms\Components\TextInput::make('price')
                     ->required()
                     ->numeric()
-                    ->prefix('$'),
+                    ->prefix('$')
+                    ->hidden(fn ($operation) => $operation === 'create'),
                 Forms\Components\TextInput::make('discount_price')
                     ->numeric()
                     ->prefix('$')
-                    ->nullable(),
+                    ->nullable()
+                    ->hidden(fn ($operation) => $operation === 'create'),
                 Forms\Components\Select::make('discount_in')
                     ->options([
                         'flat' => 'Flat',
                         'percentage' => 'Percentage',
                     ])
                     ->default('flat')
-                    ->required(),
+                    ->required()
+                    ->hidden(fn ($operation) => $operation === 'create'),
                 Forms\Components\TextInput::make('weight')
                     ->numeric()
                     ->default(0)
-                    ->nullable(),
+                    ->nullable()
+                    ->hidden(fn ($operation) => $operation === 'create'),
                 Forms\Components\TextInput::make('stock')
                     ->numeric()
                     ->default(0)
-                    ->required(),
+                    ->required()
+                    ->hidden(fn ($operation) => $operation === 'create'),
                 Forms\Components\TextInput::make('sku')
                     ->required()
-                    ->unique(\App\Models\ProductVariation::class, 'sku', ignoreRecord: true),
+                    ->unique(\App\Models\ProductVariation::class, 'sku', ignoreRecord: true)
+                    ->hidden(fn ($operation) => $operation === 'create'),
 
                 Section::make('Product Attributes')
                     ->schema([
@@ -189,9 +197,9 @@ class VariationsRelationManager extends RelationManager
                                                     ->disabled(function (callable $get) {
                                                         return empty($get('product_attribute_id'));
                                                     })
-                                            ),
+                                            )->columnSpan(2),
                                     ])
-                                    ->columns(4)
+                                    ->columns(3)
                                     ->columnSpanFull(),
                             ])
                             ->addActionLabel('Add Another Attribute')
@@ -261,7 +269,7 @@ class VariationsRelationManager extends RelationManager
                         ]),
                     ])
                     ->columnSpanFull()
-                    ->hidden(fn($livewire) => $livewire instanceof EditRecord),
+                    ->hidden(fn($operation) => $operation === 'edit'),
 
                 Section::make('Product Variations')
                     ->schema([
@@ -302,9 +310,9 @@ class VariationsRelationManager extends RelationManager
                             ->reorderable(false)
                             ->hidden(fn(callable $get) => count($get('product_attributes') ?? []) < 1)
                     ])
-                    ->hidden(fn($livewire) => $livewire instanceof EditRecord),
+                    ->hidden(fn($operation) => $operation === 'edit'),
 
-                Forms\Components\Toggle::make('is_default')
+                Toggle::make('is_default')
                     ->default(false),
 
             ]);
@@ -314,7 +322,7 @@ class VariationsRelationManager extends RelationManager
     {
         return $table
             ->columns([
-                Tables\Columns\ImageColumn::make('image.image_path')->disk('public')->width(120)->height(80)->defaultImageUrl(url('images/inf-icon.png')),
+                Tables\Columns\ImageColumn::make('image.image_path')->disk('public')->width(80)->height(50)->defaultImageUrl(url('images/inf-icon.png')),
                 Tables\Columns\TextColumn::make('name'),
                 Tables\Columns\TextColumn::make('sku'),
                 Tables\Columns\TextColumn::make('price')
@@ -325,8 +333,7 @@ class VariationsRelationManager extends RelationManager
                     ->money('bdt'),
                 Tables\Columns\TextColumn::make('weight'),
                 Tables\Columns\TextColumn::make('stock'),
-                Tables\Columns\BooleanColumn::make('is_default')
-                    ->label('Default Variation'),
+
                 Tables\Columns\TextColumn::make('directAttributes')
                     ->label('Attributes')
                     ->formatStateUsing(function ($record) {
@@ -341,7 +348,9 @@ class VariationsRelationManager extends RelationManager
                         return $formattedAttributes ?: 'No attributes';
                     })
                     ->sortable(false)
-                    ->searchable(false)
+                    ->searchable(false),
+                Tables\Columns\BooleanColumn::make('is_default')
+                    ->label('Default Variation'),
 
             ])
             ->filters([
@@ -351,8 +360,12 @@ class VariationsRelationManager extends RelationManager
                 Tables\Actions\CreateAction::make(),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                ActionGroup::make([
+                    // Tables\Actions\ViewAction::make()->color('success'),
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
+                ])
+
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
@@ -362,5 +375,28 @@ class VariationsRelationManager extends RelationManager
     public static function eagerLoad(): array
     {
         return ['attributes.attribute', 'attributes.attributeValue'];
+    }
+
+    protected static function generateCombinations(array $attributes): array
+    {
+        $sets = array_map(function ($attribute) {
+            return array_map(function ($value) use ($attribute) {
+                return [$attribute['name'] => $value];
+            }, $attribute['values']);
+        }, $attributes);
+
+        $combinations = [[]];
+
+        foreach ($sets as $set) {
+            $tmp = [];
+            foreach ($combinations as $product) {
+                foreach ($set as $item) {
+                    $tmp[] = array_merge($product, $item);
+                }
+            }
+            $combinations = $tmp;
+        }
+
+        return $combinations;
     }
 }

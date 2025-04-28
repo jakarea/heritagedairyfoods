@@ -26,6 +26,20 @@ class ProductVariation extends Model
         'discount_price' => 'decimal:2',
     ];
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::saved(function ($variation) {
+            if ($variation->is_default) {
+                // Set is_default to false for all other variations of the same product
+                self::where('product_id', $variation->product_id)
+                    ->where('id', '!=', $variation->id)
+                    ->update(['is_default' => false]);
+            }
+        });
+    }
+
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);

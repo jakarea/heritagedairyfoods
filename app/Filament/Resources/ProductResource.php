@@ -156,6 +156,7 @@ class ProductResource extends Resource
                             ])
                             ->default('simple')
                             ->nullable()
+                            ->live()
                             ->searchable(),
                         Toggle::make('is_active')
                             ->label('Active')
@@ -427,7 +428,10 @@ class ProductResource extends Resource
                         ]),
                     ])
                     ->columnSpanFull()
-                    ->hidden(fn ($livewire) => $livewire instanceof EditRecord),
+                    // ->hidden(fn ($livewire) => $livewire instanceof EditRecord),
+                    ->hidden(function (callable $get, $livewire) {
+                        return $get('type') !== 'variable' || $livewire instanceof \Filament\Resources\Pages\EditRecord;
+                    }),
 
                 Section::make('Product Variations')
                     ->schema([
@@ -469,7 +473,10 @@ class ProductResource extends Resource
                             ->hidden(fn(callable $get) => count($get('product_attributes') ?? []) < 1)
 
                     ])
-                    ->hidden(fn ($livewire) => $livewire instanceof EditRecord),
+                    // ->hidden(fn ($livewire) => $livewire instanceof EditRecord),
+                    ->hidden(function (callable $get, $livewire) {
+                        return $get('type') !== 'variable' || $livewire instanceof \Filament\Resources\Pages\EditRecord;
+                    }),
 
                 Section::make('SEO Settings')
                     ->schema([
