@@ -2,9 +2,12 @@
 
 namespace App\Filament\Resources\ProductResource\RelationManagers;
 
+use App\Models\Product;
 use App\Models\ProductAttribute;
 use App\Models\ProductAttributeValue;
+use App\Models\ProductImage;
 use App\Models\ProductVariation;
+use App\Models\ProductVariationAttribute;
 use Filament\Forms;
 use Filament\Tables;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -30,17 +33,17 @@ class VariationsRelationManager extends RelationManager
                     ->required()
                     ->disabled(fn($record) => $record !== null)
                     ->columnSpanFull()
-                    ->hidden(fn ($operation) => $operation === 'create'),
+                    ->hidden(fn($operation) => $operation === 'create'),
                 Forms\Components\TextInput::make('price')
                     ->required()
                     ->numeric()
                     ->prefix('$')
-                    ->hidden(fn ($operation) => $operation === 'create'),
+                    ->hidden(fn($operation) => $operation === 'create'),
                 Forms\Components\TextInput::make('discount_price')
                     ->numeric()
                     ->prefix('$')
                     ->nullable()
-                    ->hidden(fn ($operation) => $operation === 'create'),
+                    ->hidden(fn($operation) => $operation === 'create'),
                 Forms\Components\Select::make('discount_in')
                     ->options([
                         'flat' => 'Flat',
@@ -48,21 +51,21 @@ class VariationsRelationManager extends RelationManager
                     ])
                     ->default('flat')
                     ->required()
-                    ->hidden(fn ($operation) => $operation === 'create'),
+                    ->hidden(fn($operation) => $operation === 'create'),
                 Forms\Components\TextInput::make('weight')
                     ->numeric()
                     ->default(0)
                     ->nullable()
-                    ->hidden(fn ($operation) => $operation === 'create'),
+                    ->hidden(fn($operation) => $operation === 'create'),
                 Forms\Components\TextInput::make('stock')
                     ->numeric()
                     ->default(0)
                     ->required()
-                    ->hidden(fn ($operation) => $operation === 'create'),
+                    ->hidden(fn($operation) => $operation === 'create'),
                 Forms\Components\TextInput::make('sku')
                     ->required()
                     ->unique(\App\Models\ProductVariation::class, 'sku', ignoreRecord: true)
-                    ->hidden(fn ($operation) => $operation === 'create'),
+                    ->hidden(fn($operation) => $operation === 'create'),
 
                 Section::make('Product Attributes')
                     ->schema([
@@ -313,7 +316,8 @@ class VariationsRelationManager extends RelationManager
                     ->hidden(fn($operation) => $operation === 'edit'),
 
                 Toggle::make('is_default')
-                    ->default(false),
+                    ->default(false)
+                    ->hidden(fn($operation) => $operation === 'create'),
 
             ]);
     }
@@ -357,7 +361,67 @@ class VariationsRelationManager extends RelationManager
                 //
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make(),
+                Tables\Actions\CreateAction::make()
+                    // ->beforeFormFilled(function (array $data) {
+                         
+                    // })
+                    ->after(function (array $data) {
+                        // just clean/prepare $data   
+                        $product = $this->getOwnerRecord();
+                        $createdVariations = [];
+
+                        if (!empty($data['product_variations'])) { 
+                            foreach ($data['product_variations'] as $index => $variationData) { 
+                                // Save variation
+                                $variation = ProductVariation::create([
+                                    'product_id' => $product->id,
+                                    'name' => $variationData['name'],
+                                    'price' => $variationData['price'],
+                                    'discount_price' => $variationData['discount_price'],
+                                    'discount_in' => $variationData['discount_in'],
+                                    'stock' => $variationData['stock'],
+                                    'sku' => $variationData['sku'],
+                                    'weight' => $variationData['weight'],
+                                    'is_default' => 0,
+                                ]);
+
+                                $createdVariations[] = $variation;
+
+                                // Save attributes
+                                if (!empty($data['product_attributes'])) {
+                                    $variationAttributes = [];
+
+                                    foreach ($data['product_attributes'] as $attributeSet) {
+                                        if (!empty($attributeSet['product_attribute_values'])) {
+                                            $value = $attributeSet['product_attribute_values'][0];
+
+                                            $variationAttributes[] = [
+                                                'product_variation_id' => $variation->id,
+                                                'product_attribute_id' => $attributeSet['product_attribute_id'],
+                                                'product_attribute_value_id' => $value,
+                                                'created_at' => now(),
+                                                'updated_at' => now(),
+                                            ];
+                                        }
+                                    }
+
+                                    if (!empty($variationAttributes)) {
+                                        ProductVariationAttribute::insert($variationAttributes);
+                                    }
+                                }
+
+                                // Save image
+                                if (!empty($variationData['image'])) {
+                                    ProductImage::create([
+                                        'product_id' => $product->id,
+                                        'variation_id' => $variation->id,
+                                        'image_path' => $variationData['image'],
+                                        'is_primary' => false,
+                                    ]);
+                                }
+                            }
+                        }
+                    }),
             ])
             ->actions([
                 ActionGroup::make([

@@ -24,7 +24,7 @@ class EditProduct extends EditRecord
     protected function afterSave(): void
     {
         $product = $this->record;
-        $data = $this->form->getState();
+        $data = $this->form->getState(); 
 
         // Handle featured image
         if (!empty($data['featured_image'])) {

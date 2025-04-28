@@ -4,9 +4,10 @@ namespace App\Filament\Resources\ProductResource\RelationManagers;
 
 use Filament\Forms;
 use Filament\Tables;
-use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Resources\RelationManagers\RelationManager;
 
 class ImagesRelationManager extends RelationManager
 {
@@ -33,10 +34,10 @@ class ImagesRelationManager extends RelationManager
                         }
 
                         return 'products/variation-images';
-                    }),
-                // Forms\Components\Toggle::make('is_primary')
-                //     ->default(false)
-                //     ->visible(fn (string $context): bool => $context === 'edit'),
+                    })
+                    ->columnSpanFull(),
+                Forms\Components\Toggle::make('is_primary')
+                    ->label('Featured Image'),
                 // Forms\Components\Select::make('variation_id')
                 //     ->label('Variation')
                 //     ->options(function () {
@@ -79,18 +80,23 @@ class ImagesRelationManager extends RelationManager
             ])
             ->headerActions([
                 Tables\Actions\CreateAction::make()
-                    ->mutateFormDataUsing(function (array $data): array {
-                        $data['is_primary'] = false;
-                        $data['variation_id'] = null;
-                        return $data;
-                    }),
+                // ->mutateFormDataUsing(function (array $data): array {
+                //     $data['is_primary'] = false;
+                //     $data['variation_id'] = null;
+                //     return $data;
+                // }),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+
+                ActionGroup::make([
+                    Tables\Actions\ViewAction::make(),
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
+                ])
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
             ]);
     }
+            
 }
