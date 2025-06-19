@@ -4,9 +4,10 @@ namespace App\Filament\Resources\ProductResource\RelationManagers;
 
 use Filament\Forms;
 use Filament\Tables;
-use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Resources\RelationManagers\RelationManager;
 
 class ImagesRelationManager extends RelationManager
 {
@@ -16,19 +17,35 @@ class ImagesRelationManager extends RelationManager
     {
         return $form
             ->schema([
-                Forms\Components\FileUpload::make('image_url')
+                Forms\Components\FileUpload::make('image_path')
                     ->required()
                     ->image()
-                    ->directory('product-images')
-                    ->preserveFilenames(),
-                Forms\Components\Toggle::make('is_primary')
-                    ->default(false),
-                Forms\Components\Select::make('variation_id')
-                    ->label('Variation')
-                    ->options(function (callable $get) {
-                        return \App\Models\ProductVariation::where('product_id', $get('product_id'))->pluck('sku', 'id');
+                    ->preserveFilenames()
+                    ->directory(function (callable $get) {
+                        $isPrimary = $get('is_primary');
+                        $variationId = $get('variation_id');
+
+                        if ($isPrimary) {
+                            return 'products/featured-images';
+                        }
+
+                        if (is_null($variationId)) {
+                            return 'products/gallery-images';
+                        }
+
+                        return 'products/variation-images';
                     })
-                    ->nullable(),
+                    ->columnSpanFull(),
+                Forms\Components\Toggle::make('is_primary')
+                    ->label('Featured Image'),
+                // Forms\Components\Select::make('variation_id')
+                //     ->label('Variation')
+                //     ->options(function () {
+                //         $product = $this->getRelationship()->getParent();
+                //         return \App\Models\ProductVariation::where('product_id', $product->id)->pluck('name', 'id');
+                //     })
+                //     ->nullable()
+                //     ->visible(fn (string $context): bool => $context === 'edit'),
             ]);
     }
 
@@ -36,25 +53,50 @@ class ImagesRelationManager extends RelationManager
     {
         return $table
             ->columns([
-                Tables\Columns\ImageColumn::make('image_url')
+
+                Tables\Columns\ImageColumn::make('image_path')
+                    ->label('Image')
                     ->disk('public')
+                    // ->width(200)
                     ->height(100),
-                Tables\Columns\BooleanColumn::make('is_primary'),
-                Tables\Columns\TextColumn::make('variation.sku')
-                    ->label('Variation'),
+                Tables\Columns\BooleanColumn::make('is_primary')->label('Featured'),
+                Tables\Columns\BooleanColumn::make('variation_id')
+                    ->label('Variation')
+                    ->getStateUsing(fn($record) => !is_null($record->variation_id))
+                    ->trueIcon('heroicon-o-check-circle') // Green check
+                    ->falseIcon('heroicon-o-x-circle')    // Red cross
+                    ->trueColor('success')
+                    ->falseColor('danger'),
+                Tables\Columns\BooleanColumn::make('gallery_id')
+                    ->label('Gallery Image')
+                    ->getStateUsing(fn($record) => is_null($record->variation_id) && $record->is_primary === false)
+                    ->trueIcon('heroicon-o-check-circle') // Green check
+                    ->falseIcon('heroicon-o-x-circle')    // Red cross
+                    ->trueColor('success')
+                    ->falseColor('danger'),
             ])
             ->filters([
                 //
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make(),
+                Tables\Actions\CreateAction::make()
+                // ->mutateFormDataUsing(function (array $data): array {
+                //     $data['is_primary'] = false;
+                //     $data['variation_id'] = null;
+                //     return $data;
+                // }),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+
+                ActionGroup::make([
+                    Tables\Actions\ViewAction::make(),
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
+                ])
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
             ]);
     }
+            
 }

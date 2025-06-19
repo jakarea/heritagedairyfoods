@@ -28,12 +28,10 @@ return new class extends Migration
             $table->integer('stock')->default(0);
             $table->string('sku', 50)->unique()->nullable();
             $table->enum('status', ['active', 'draft', 'out_of_stock', 'archived'])->default('active');
-            $table->enum('type', ['simple', 'variable', 'bundle'])->default('simple');  
-            $table->decimal('weight', 8, 2)->nullable(); 
+            $table->enum('type', ['simple', 'variable', 'bundle'])->default('simple');   
             $table->json('categories')->nullable(); 
             $table->json('tags')->nullable();  
-            $table->string('video', 255)->nullable();  
-            // $table->foreignId('brand_id')->nullable()->constrained('brands')->onDelete('set null');
+            $table->string('video_url', 255)->nullable();   
             $table->string('meta_title', 255)->nullable();
             $table->text('meta_description')->nullable();
             $table->text('meta_keywords')->nullable();

@@ -19,8 +19,8 @@ return new class extends Migration
             $table->foreignId('variation_id')->nullable()->constrained('product_variations')->onDelete('set null');
             $table->integer('quantity');
             $table->decimal('price', 10, 2); // Final price at the time of purchase
-            $table->decimal('subtotal', 10, 2);
-            $table->decimal('discount', 10, 2);
+            $table->decimal('subtotal', 10, 2)->nullable();
+            $table->decimal('discount', 10, 2)->nullable();
             $table->timestamps();
         });
     }

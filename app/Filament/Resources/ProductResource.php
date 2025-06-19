@@ -4,19 +4,25 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProductResource\Pages;
 use App\Filament\Resources\ProductResource\RelationManagers;
-use App\Models\Category;
 use App\Models\Tag;
-use App\Models\Product;
-use App\Models\ProductImage;
-use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
 use Filament\Tables;
+use App\Models\Product;
+use App\Models\Category;
+use Filament\Forms\Form;
 use Filament\Tables\Table;
+use Illuminate\Support\Str;
+use Filament\Resources\Resource;
+use App\Models\ProductAttribute;
 use Filament\Infolists\Infolist;
 use Filament\Infolists\Components;
-use Illuminate\Support\Str;
+use App\Models\ProductAttributeValue;
+use Filament\Forms\Components\Actions;
 use Filament\Tables\Actions\ActionGroup;
+use Filament\Notifications\Notification;
+use Filament\Forms\Components\Actions\Action; 
+use Filament\Resources\Pages\EditRecord;
+use Filament\Tables\Actions\{EditAction, DeleteAction, ViewAction, ForceDeleteAction, RestoreAction};
+use Filament\Forms\Components\{TextInput, Select, Textarea, FileUpload, Grid, Toggle, Repeater, RichEditor, Section, TagsInput};
 
 
 class ProductResource extends Resource
@@ -25,6 +31,7 @@ class ProductResource extends Resource
     protected static ?string $navigationGroup = 'Products Management';
     protected static ?string $navigationBadgeTooltip = 'The number of products';
     protected static ?string $navigationIcon = 'heroicon-o-shopping-bag';
+    protected static ?int $navigationSort = 3;
 
     public static function shouldRegisterNavigation(): bool
     {
@@ -35,104 +42,62 @@ class ProductResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Basic Information')
+                Section::make('Basic Information')
                     ->schema([
-                        Forms\Components\TextInput::make('name')
+                        TextInput::make('name')
                             ->required()
                             ->maxLength(255)
                             ->reactive()
+                            ->live(debounce: 500)
                             ->afterStateUpdated(function ($state, callable $set) {
                                 $set('slug', Str::slug($state));
                             })->columnSpanFull(),
-                        Forms\Components\TextInput::make('subtitle')
-                            ->nullable()
-                            ->maxLength(255),
-                        Forms\Components\TextInput::make('slug')
+
+                        TextInput::make('slug')
                             ->required()
                             ->unique(Product::class, 'slug', ignoreRecord: true)
                             ->maxLength(255),
-                        Forms\Components\RichEditor::make('description')
+                        TextInput::make('subtitle')
                             ->nullable()
-                            ->columnSpanFull(),
-                        Forms\Components\Textarea::make('short_desc')
+                            ->label('Sub Title')
+                            ->maxLength(255),
+                        Textarea::make('short_desc')
                             ->nullable()
+                            ->label('Short Description')
                             ->maxLength(65535)
                             ->columnSpanFull(),
-                        Forms\Components\Select::make('type')
-                            ->options([
-                                'small' => 'Small',
-                                'medium' => 'Medium',
-                                'large' => 'Large',
-                            ])
-                            ->default('medium'),
-                        Forms\Components\TextInput::make('weight')
+                        RichEditor::make('description')
                             ->nullable()
-                            ->maxLength(255)
-                            ->helperText('e.g., 100, 500, 1000, etc.(only grams)'),
+                            ->columnSpanFull(),
                     ])
+                    ->columnSpan(9)
                     ->columns(2),
 
-
-
-                Forms\Components\Section::make('Pricing & Stock')
+                Section::make('Sidebar Information')
                     ->schema([
-                        Forms\Components\TextInput::make('price')
-                            ->required()
-                            ->numeric()
-                            ->prefix('$'),
-                        Forms\Components\TextInput::make('offer_price')
-                            ->nullable()
-                            ->numeric()
-                            ->prefix('$'),
-                        Forms\Components\Select::make('discount_in')
-                            ->options([
-                                'flat' => 'Flat',
-                                'percentage' => 'Percentage',
-                            ])
-                            ->default('flat')
-                            ->required(),
-                        Forms\Components\Select::make('status')
-                            ->options([
-                                'active' => 'Active',
-                                'draft' => 'Draft',
-                                'out_of_stock' => 'Out of Stock',
-                                'archived' => 'Archived',
-                            ])
-                            ->default('active')
-                            ->required(),
-                        Forms\Components\TextInput::make('sku')
-                            ->required()
-                            ->unique(Product::class, 'sku', ignoreRecord: true)
-                            ->maxLength(255)->columnSpanFull(),
-
-                    ])
-                    ->columns(2),
-
-                Forms\Components\Section::make('Categories & Tags')
-                    ->schema([
-                        Forms\Components\Select::make('categories')
+                        Select::make('categories')
                             ->multiple()
                             ->options(function () {
-                                return Category::all()->pluck('name', 'id');
+                                return Category::where('is_active', true)->pluck('name', 'id');
                             })
                             ->searchable()
                             ->preload()
                             ->createOptionForm([
-                                Forms\Components\TextInput::make('name')
+                                TextInput::make('name')
                                     ->required()
                                     ->unique(Category::class, 'name')
                                     ->reactive()
                                     ->afterStateUpdated(function ($state, callable $set) {
                                         $set('slug', Str::slug($state));
                                     }),
-                                Forms\Components\TextInput::make('slug')
+                                TextInput::make('slug')
                                     ->required()
                                     ->unique(Category::class, 'slug'),
-                                Forms\Components\Textarea::make('description')
+                                Textarea::make('description')
                                     ->nullable(),
-                                Forms\Components\FileUpload::make('image')
+                                FileUpload::make('image')
                                     ->image()
-                                    ->directory('category-images')
+                                    ->directory('products/category-images')
                                     ->nullable(),
                             ])
                             ->createOptionUsing(function (array $data) {
@@ -140,134 +105,412 @@ class ProductResource extends Resource
                                 return $category->id;
                             })
                             ->required(),
-                        Forms\Components\Select::make('tags')
+                        Select::make('tags')
                             ->multiple()
                             ->options(function () {
-                                return Tag::all()->pluck('name', 'id');
+                                return Tag::where('is_active', true)->pluck('name', 'id');
                             })
                             ->searchable()
                             ->preload()
                             ->createOptionForm([
-                                Forms\Components\TextInput::make('name')
+                                TextInput::make('name')
                                     ->required()
                                     ->unique(Tag::class, 'name')
                                     ->reactive()
                                     ->afterStateUpdated(function ($state, callable $set) {
                                         $set('slug', Str::slug($state));
                                     }),
-                                Forms\Components\TextInput::make('slug')
+                                TextInput::make('slug')
                                     ->required()
                                     ->unique(Tag::class, 'slug'),
-                                Forms\Components\Textarea::make('description')
+                                Textarea::make('description')
                                     ->nullable(),
-                                Forms\Components\FileUpload::make('image')
+                                FileUpload::make('image')
                                     ->image()
-                                    ->directory('tag-images')
+                                    ->directory('products/tag-images')
                                     ->nullable(),
                             ])
                             ->createOptionUsing(function (array $data) {
                                 $tag = Tag::create($data);
-                                return $tag->id; // Fixed to return id instead of name
+                                return $tag->id;
                             }),
+
+                        Select::make('status')
+                            ->options([
+                                'active' => 'Active',
+                                'draft' => 'Draft',
+                                'archived' => 'Archived',
+                                'out_of_stock' => 'Out of Stock',
+                            ])
+                            ->default('active')
+                            ->nullable()
+                            ->searchable(),
+
+                        TextInput::make('video_url')
+                            ->label('Video URL')
+                            ->nullable(),
+                        Select::make('type')
+                            ->options([
+                                'simple' => 'Simple',
+                                'variable' => 'Variable',
+                                'bundle' => 'Bundle',
+                            ])
+                            ->default('simple')
+                            ->nullable()
+                            ->live()
+                            ->searchable(),
+                        Toggle::make('is_active')
+                            ->label('Active')
+                            ->default(true),
+                    ])
+                    ->columnSpan(3),
+
+                Section::make('Pricing & Stock')
+                    ->schema([
+                        TextInput::make('base_price')
+                            ->label('Price')
+                            ->required()
+                            ->numeric()
+                            ->prefix('BDT'),
+                        TextInput::make('discount_price')
+                            ->nullable()
+                            ->numeric()
+                            ->prefix('BDT'),
+                        Select::make('discount_in')
+                            ->options([
+                                'flat' => 'Flat',
+                                'percentage' => 'Percentage',
+                            ])
+                            ->default('flat'),
+                        TextInput::make('stock')
+                            ->nullable()
+                            ->numeric()
+                            ->maxLength(255),
+                        TextInput::make('sku')
+                            ->nullable()
+                            ->unique(Product::class, 'sku', ignoreRecord: true)
+                            ->maxLength(50),
+
+                    ])
+                    ->columns(3),
+
+                    Section::make('Media')
+                    ->schema([
+                        Section::make('Featured Image')
+                            ->label('Featured Image')
+                            ->schema([
+                                FileUpload::make('featured_image')
+                                    ->image()
+                                    ->disk('public')
+                                    ->visibility('public')
+                                    ->directory('products/featured-images')
+                                    ->preserveFilenames()
+                            ])
+                            ->columnSpan(1),
+                
+                        Section::make('Gallery Images')
+                            ->label('Gallery Images')
+                            ->schema([
+                                FileUpload::make('gallery_images')
+                                    ->multiple()
+                                    ->image()
+                                    ->disk('public')
+                                    ->directory('products/gallery-images')
+                                    ->preserveFilenames(),
+                            ])
+                            ->columnSpan(1)
+                    ])
+                    ->columns(2)
+                    ->columnSpanFull()
+                    ->hidden(fn ($livewire) => $livewire instanceof EditRecord),
+
+                Section::make('Product Attributes')
+                    ->schema([
+                        Repeater::make('product_attributes')
+                            ->schema([
+                                Grid::make()
+                                    ->schema([
+                                        Select::make('product_attribute_id')
+                                            ->label('Attribute')
+                                            ->searchable()
+                                            ->options(function () {
+                                                return ProductAttribute::pluck('name', 'id')->toArray();
+                                            })
+                                            ->live(debounce: 500)
+                                            ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                                $allAttributes = $get('../../attributes') ?? [];
+                                                $selectedAttributes = collect($allAttributes)
+                                                    ->pluck('product_attribute_id')
+                                                    ->filter()
+                                                    ->toArray();
+
+                                                $currentId = $state;
+                                                $count = array_count_values($selectedAttributes)[$currentId] ?? 0;
+
+                                                if ($currentId && $count > 1) {
+                                                    $set('product_attribute_id', null);
+                                                    Notification::make()
+                                                        ->title('This attribute is already selected')
+                                                        ->warning()
+                                                        ->send();
+                                                }
+
+                                                // Reset values when attribute changes
+                                                $set('product_attribute_values', []);
+                                            })
+                                            ->suffixAction(
+                                                Action::make('create_attribute')
+                                                    ->icon('heroicon-o-plus')
+                                                    ->form([
+                                                        TextInput::make('name')
+                                                            ->label('Attribute Name')
+                                                            ->required()
+                                                            ->unique(ProductAttribute::class, 'name'),
+                                                    ])
+                                                    ->action(function (array $data, callable $set) {
+                                                        $baseSlug = Str::slug($data['name']);
+                                                        $slug = $baseSlug;
+                                                        $counter = 1;
+                                                        while (ProductAttribute::where('slug', $slug)->exists()) {
+                                                            $slug = "{$baseSlug}-{$counter}";
+                                                            $counter++;
+                                                        }
+
+                                                        $newAttribute = ProductAttribute::create([
+                                                            'name' => $data['name'],
+                                                            'slug' => $slug,
+                                                        ]);
+
+                                                        $set('product_attribute_id', $newAttribute->id);
+
+                                                        Notification::make()
+                                                            ->title('Attribute created')
+                                                            ->success()
+                                                            ->send();
+                                                    })
+                                                    ->modalHeading('Create New Attribute')
+                                                    ->modalSubmitActionLabel('Create')
+                                            ),
+                                        Select::make('product_attribute_values')
+                                            ->label('Attribute Values')
+                                            ->multiple() // Allow multiple selections
+                                            ->options(function (callable $get) {
+                                                $attributeId = $get('product_attribute_id');
+                                                if ($attributeId) {
+                                                    return ProductAttributeValue::where('product_attribute_id', $attributeId)
+                                                        ->pluck('value', 'id')
+                                                        ->toArray();
+                                                }
+                                                return [];
+                                            })
+                                            ->visible(function (callable $get) {
+                                                return !empty($get('product_attribute_id'));
+                                            })
+                                            ->live(debounce: 500)
+                                            ->columnSpan(2)
+                                            ->suffixAction(
+                                                Action::make('add_attribute_value')
+                                                    ->icon('heroicon-o-plus')
+                                                    ->form([
+                                                        TextInput::make('value')
+                                                            ->label('New Attribute Value')
+                                                            ->required(),
+                                                    ])
+                                                    ->action(function (array $data, callable $get, callable $set) {
+                                                        $attributeId = $get('product_attribute_id');
+                                                        if (!$attributeId) {
+                                                            Notification::make()
+                                                                ->title('Please select an attribute first')
+                                                                ->warning()
+                                                                ->send();
+                                                            return;
+                                                        }
+
+                                                        $baseSlug = Str::slug($data['value']);
+                                                        $slug = $baseSlug;
+                                                        $counter = 1;
+                                                        while (ProductAttributeValue::where('slug', $slug)->exists()) {
+                                                            $slug = "{$baseSlug}-{$counter}";
+                                                            $counter++;
+                                                        }
+
+                                                        $newValue = ProductAttributeValue::create([
+                                                            'product_attribute_id' => $attributeId,
+                                                            'value' => $data['value'],
+                                                            'slug' => $slug,
+                                                        ]);
+
+                                                        $currentValues = $get('product_attribute_values') ?? [];
+                                                        $currentValues[] = (string) $newValue->id; // Ensure string for Select
+                                                        $set('product_attribute_values', $currentValues);
+
+                                                        Notification::make()
+                                                            ->title('Attribute value added')
+                                                            ->success()
+                                                            ->send();
+                                                    })
+                                                    ->modalHeading('Add New Attribute Value')
+                                                    ->modalSubmitActionLabel('Add')
+                                                    ->visible(function (callable $get) {
+                                                        return !empty($get('product_attribute_id'));
+                                                    })
+                                                    ->disabled(function (callable $get) {
+                                                        return empty($get('product_attribute_id'));
+                                                    })
+                                            ),
+                                    ])
+                                    ->columns(4)
+                                    ->columnSpanFull(),
+                            ])
+                            ->addActionLabel('Add Another Attribute')
+                            ->maxItems(3)
+                            ->addable(function (callable $get) {
+                                $attributes = $get('product_attributes') ?? [];
+
+                                // Filter out incomplete ones
+                                $validAttributes = collect($attributes)->filter(function ($attr) {
+                                    return !empty($attr['product_attribute_id']) &&
+                                        !empty($attr['product_attribute_values']) &&
+                                        count($attr['product_attribute_values']) > 0;
+                                });
+
+                                return $validAttributes->count() >= 1;
+                            })
+                            ->columnSpanFull(),
+
+                        Actions::make([
+                            Action::make('generate_variants')
+                                ->label('Generate Variants')
+                                ->visible(function (callable $get) {
+                                    $attributes = $get('product_attributes') ?? [];
+
+                                    // Filter out incomplete ones
+                                    $validAttributes = collect($attributes)->filter(function ($attr) {
+                                        return !empty($attr['product_attribute_id']) &&
+                                            !empty($attr['product_attribute_values']) &&
+                                            count($attr['product_attribute_values']) > 0;
+                                    });
+
+                                    return $validAttributes->count() >= 2;
+                                })
+                                ->action(function (callable $get, callable $set) {
+                                    $attributes = collect($get('product_attributes'))->filter(function ($attr) {
+                                        return !empty($attr['product_attribute_id']) &&
+                                            !empty($attr['product_attribute_values']);
+                                    })->map(function ($attr) {
+                                        $attribute = ProductAttribute::find($attr['product_attribute_id']);
+                                        if (!$attribute) {
+                                            return null;
+                                        }
+
+                                        return [
+                                            'name' => $attribute->name,
+                                            'values' => ProductAttributeValue::whereIn('id', $attr['product_attribute_values'])->pluck('value')->toArray(),
+                                        ];
+                                    })->filter()->toArray();
+
+                                    $combinations = self::generateCombinations($attributes);
+
+                                    $variantData = collect($combinations)->map(function ($combo) {
+                                        $name = implode('-', array_values($combo));
+                                        return [
+                                            'name' => $name,
+                                            'sku' => strtoupper(Str::random(8)),
+                                            'price' => 0,
+                                            'stock' => 0,
+                                            'weight' => 0,
+                                            'is_default' => false,
+                                        ];
+                                    })->toArray();
+
+                                    $set('product_variations', $variantData);
+                                }),
+
+                        ]),
+                    ])
+                    ->columnSpanFull()
+                    // ->hidden(fn ($livewire) => $livewire instanceof EditRecord),
+                    ->hidden(function (callable $get, $livewire) {
+                        return $get('type') !== 'variable' || $livewire instanceof \Filament\Resources\Pages\EditRecord;
+                    }),
+
+                Section::make('Product Variations')
+                    ->schema([
+                        Repeater::make('product_variations')
+                            ->label('Generated Variants')
+                            ->schema([
+
+                                Grid::make(6)
+                                    ->schema([
+                                        TextInput::make('name')
+                                            ->label('Variation Name')
+                                            ->required(),
+                                        TextInput::make('sku')->required(),
+                                        TextInput::make('price')->numeric()->required(),
+                                        TextInput::make('discount_price')->numeric(),
+                                        Select::make('discount_in')
+                                            ->options([
+                                                'flat' => 'Flat',
+                                                'percentage' => 'Percentage',
+                                            ])
+                                            ->required()
+                                            ->default('flat'),
+                                        TextInput::make('stock')->numeric()->required(),
+                                        TextInput::make('weight')->numeric(),
+                                    ])->columnSpan(4)->columns(4),
+
+
+                                FileUpload::make('image')
+                                    ->image()
+                                    ->disk('public')
+                                    ->label('Variation Image')
+                                    ->directory('products/variation-images')
+                                    ->imagePreviewHeight('100')->columnSpan(2),
+                            ])
+                            ->columns(6)
+                            ->default([])
+                            ->addable(false)
+                            ->reorderable(false)
+                            ->hidden(fn(callable $get) => count($get('product_attributes') ?? []) < 1)
+
+                    ])
+                    // ->hidden(fn ($livewire) => $livewire instanceof EditRecord),
+                    ->hidden(function (callable $get, $livewire) {
+                        return $get('type') !== 'variable' || $livewire instanceof \Filament\Resources\Pages\EditRecord;
+                    }),
+
+                Section::make('SEO Settings')
+                    ->schema([
+                        TextInput::make('meta_title')
+                            ->nullable()
+                            ->columnSpanFull()
+                            ->maxLength(255),
+                        TextInput::make('meta_keywords')
+                            ->nullable()
+                            ->maxLength(255),
+                        TagsInput::make('search_keywords')
+                            ->separator(',')
+                            ->reorderable()
+                            ->suggestions([
+                                'tailwindcss',
+                                'alpinejs',
+                                'laravel',
+                                'livewire',
+                            ])
+                            ->splitKeys(['Tab', ','])
+                            ->nestedRecursiveRules([
+                                'min:2',
+                                'max:255',
+                            ]),
+                        Textarea::make('meta_description')
+                            ->nullable()
+                            ->columnSpanFull()
+                            ->maxLength(65535),
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make('Images')
-                    ->schema([
-                        Forms\Components\FileUpload::make('image')
-                            ->image()
-                            ->directory('product-images')
-                            ->preserveFilenames(),
-                    ])
-                    ->columnSpanFull(),
 
-                Forms\Components\Section::make('SEO Settings')
-                    ->schema([
-                        Forms\Components\TextInput::make('meta_title')
-                            ->nullable()
-                            ->maxLength(255),
-                        Forms\Components\Textarea::make('meta_description')
-                            ->nullable()
-                            ->maxLength(65535),
-                        Forms\Components\TextInput::make('meta_keywords')
-                            ->nullable()
-                            ->maxLength(255),
-                        Forms\Components\TextInput::make('search_keywords')
-                            ->nullable()
-                            ->maxLength(65535),
-                    ])
-                    ->columns(2),
-                // Forms\Components\Section::make('Video')
-                //     ->schema([
-                //         Forms\Components\TextInput::make('video.title')
-                //             ->label('Video Title')
-                //             ->nullable()
-                //             ->maxLength(255),
-                //         Forms\Components\TextInput::make('video.sub_title')
-                //             ->label('Video Subtitle')
-                //             ->nullable()
-                //             ->maxLength(255),
-                //         Forms\Components\TextInput::make('video.url')
-                //             ->label('Video URL')
-                //             ->nullable()
-                //             ->url()
-                //             ->maxLength(255),
-                //         Forms\Components\Textarea::make('video.description')
-                //             ->label('Video Description')
-                //             ->nullable()
-                //             ->maxLength(65535),
-                //     ])
-                //     ->columns(2),
-
-                // Forms\Components\Section::make('Details')
-                //     ->schema([
-                //         Forms\Components\Repeater::make('details')
-                //             ->schema([
-                //                 Forms\Components\FileUpload::make('image')
-                //                     ->image()
-                //                     ->directory('product-detail-images')
-                //                     ->nullable()
-                //                     ->label('Detail Image')
-                //                     ->columnSpanFull(),
-                //                 Forms\Components\Repeater::make('blocks')
-                //                     ->schema([
-                //                         Forms\Components\TextInput::make('title')
-                //                             ->label('Block Title')
-                //                             ->nullable()
-                //                             ->maxLength(255),
-                //                         Forms\Components\Repeater::make('lists')
-                //                             ->schema([
-                //                                 Forms\Components\TextInput::make('item')
-                //                                     ->label('List Item')
-                //                                     ->required()
-                //                                     ->maxLength(65535),
-                //                             ])
-                //                             ->label('List Items')
-                //                             ->required(),
-                //                     ])
-                //                     ->collapsible()
-                //                     ->itemLabel(fn(array $state): ?string => $state['title'] ?? 'Block')
-                //                     ->columnSpanFull(),
-                //             ])
-                //             ->collapsible()
-                //             ->itemLabel(fn(array $state): ?string => $state['blocks'][0]['title'] ?? 'Detail Section')
-                //             ->columns(2),
-                //     ])
-                //     ->columnSpanFull(),
-
-                // Forms\Components\Section::make('Conclusion')
-                //     ->schema([
-                //         Forms\Components\TextInput::make('conclusion.title')
-                //             ->label('Conclusion Title')
-                //             ->nullable()
-                //             ->maxLength(255),
-                //         Forms\Components\Textarea::make('conclusion.description')
-                //             ->label('Conclusion Description')
-                //             ->nullable()
-                //             ->maxLength(65535),
-                //     ])
-                //     ->columns(2),
-            ]);
+            ])->columns(12);
     }
 
     public static function table(Table $table): Table
@@ -275,19 +518,21 @@ class ProductResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\ImageColumn::make('image')
-                    ->extraImgAttributes(['class' => 'w-12 h-12 object-cover rounded-md'])->defaultImageUrl(url('images/image-not-found-2.jpg')),
+                    ->label('Feat Image')
+                    ->getStateUsing(function ($record) {
+                        return $record->featuredImage?->image_path ?? null;
+                    })
+                    ->extraImgAttributes(['class' => 'w-12 h-12 object-cover rounded-md'])
+                    ->defaultImageUrl(url('images/inf-icon.png')),
                 Tables\Columns\TextColumn::make('name')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('price')
+                Tables\Columns\TextColumn::make('base_price')
                     ->money('BDT')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('type')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('weight')
-                    ->suffix(' gm')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('offer_price')
+                Tables\Columns\TextColumn::make('discount_price')
                     ->money('BDT')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('status')
@@ -344,13 +589,53 @@ class ProductResource extends Resource
             ])
             ->actions([
                 ActionGroup::make([
-                    Tables\Actions\ViewAction::make()->color('success'),
-                    Tables\Actions\EditAction::make(),
-                    Tables\Actions\DeleteAction::make(),
+                    ViewAction::make()->color('success'),
+                    EditAction::make(),
+                    DeleteAction::make()
+                        ->requiresConfirmation()
+                        ->modalHeading('Delete Product')
+                        ->modalDescription('Are you sure you want to delete this Product? It will be moved to the trash.')
+                        ->modalSubmitActionLabel('Confirm')
+                        ->before(function ($record) {
+                            Product::decrementProductCounts($record->categories ?? [], $record->tags ?? []);
+                        })
+                        ->action(fn($record) => $record->delete())
+                        ->successNotification(
+                            Notification::make()
+                                ->success()
+                                ->title('Product Deleted')
+                                ->body('The Product has been moved to the trash.')
+                        ),
+                    RestoreAction::make()
+                        ->requiresConfirmation()
+                        ->modalHeading('Restore Product')
+                        ->modalDescription('Are you sure you want to restore this Product?')
+                        ->modalSubmitActionLabel('Confirm')
+                        ->visible(fn($record) => $record->trashed())
+                        ->successNotification(
+                            Notification::make()
+                                ->success()
+                                ->title('Product Restored')
+                                ->body('The Product has been restored.')
+                        ),
+                    ForceDeleteAction::make()
+                        ->requiresConfirmation()
+                        ->modalHeading('Permanently Delete Product')
+                        ->modalDescription('Are you sure you want to permanently delete this Product? This action cannot be undone.')
+                        ->modalSubmitActionLabel('Confirm')
+                        ->visible(fn($record) => $record->trashed())
+                        ->successNotification(
+                            Notification::make()
+                                ->success()
+                                ->title('Product Permanently Deleted')
+                                ->body('The Product has been permanently deleted.')
+                        ),
                 ])
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
+                Tables\Actions\RestoreBulkAction::make(),
+                Tables\Actions\ForceDeleteBulkAction::make(),
             ]);
     }
 
@@ -358,34 +643,53 @@ class ProductResource extends Resource
     {
         return $infolist
             ->schema([
+                Components\TextEntry::make('search_keywords')
+                    ->label('Search Keywords')
+                    ->getStateUsing(function ($record) {
+                        $keywords = array_map('trim', explode(',', $record->search_keywords));
+                        return collect($keywords);
+                    })
+                    ->badge()
+                    ->copyable()
+                    ->html(),
+
                 Components\Section::make('Basic Information')
                     ->schema([
                         Components\TextEntry::make('name'),
                         Components\TextEntry::make('subtitle'),
                         Components\TextEntry::make('slug'),
-                        Components\TextEntry::make('description')->html(),
                         Components\TextEntry::make('short_desc'),
-                        Components\TextEntry::make('type'),
-                        Components\TextEntry::make('weight'),
-                    ])
-                    ->columns(2),
-
-                Components\Section::make('SEO Settings')
-                    ->schema([
-                        Components\TextEntry::make('meta_title'),
-                        Components\TextEntry::make('meta_description'),
-                        Components\TextEntry::make('meta_keywords'),
-                        Components\TextEntry::make('search_keywords'),
+                        Components\TextEntry::make('status')->badge()
+                            ->color(function ($state) {
+                                return match ($state) {
+                                    'active' => 'success',
+                                    'draft' => 'gray',
+                                    'out_of_stock' => 'danger',
+                                    'archived' => 'info',
+                                    default => 'secondary',
+                                };
+                            }),
+                        Components\TextEntry::make('type')->badge()
+                            ->color(function ($state) {
+                                return match ($state) {
+                                    'simple' => 'success',
+                                    'variable' => 'primary',
+                                    'bundle' => 'info',
+                                    default => 'secondary',
+                                };
+                            }),
+                        Components\TextEntry::make('description')
+                            ->html()
+                            ->columnSpanFull(),
                     ])
                     ->columns(2),
 
                 Components\Section::make('Pricing & Stock')
                     ->schema([
-                        Components\TextEntry::make('price')->money('bdt'),
-                        Components\TextEntry::make('offer_price')->money('bdt'),
+                        Components\TextEntry::make('base_price')->money('bdt'),
+                        Components\TextEntry::make('discount_price')->money('bdt'),
                         Components\TextEntry::make('discount_in'),
                         Components\TextEntry::make('sku'),
-                        Components\TextEntry::make('status')->badge(),
                     ])
                     ->columns(2),
 
@@ -406,76 +710,13 @@ class ProductResource extends Resource
                     ])
                     ->columns(2),
 
-                Components\Section::make('Image')
+                Components\Section::make('SEO Settings')
                     ->schema([
-                        Components\ImageEntry::make('image')
-                            ->disk('public')
-                            ->width(500)
-                            ->height(350)
-                            ->label('Product Image')
+                        Components\TextEntry::make('meta_title'),
+                        Components\TextEntry::make('meta_keywords'),
+                        Components\TextEntry::make('meta_description')->columnSpanFull(),
                     ])
-                    ->collapsible(),
-
-                Components\Section::make('Video')
-                    ->schema([
-                        Components\TextEntry::make('video.title')->label('Video Title'),
-                        Components\TextEntry::make('video.sub_title')->label('Video Subtitle'),
-                        Components\TextEntry::make('video.url')
-                            ->label('Video URL')
-                            ->formatStateUsing(fn($state) => $state ? "<a href='$state' target='_blank'>View Video</a>" : 'None')
-                            ->html(),
-                        Components\TextEntry::make('video.description')->label('Video Description'),
-                    ])
-                    ->columns(2)
-                    ->collapsible(),
-
-                Components\Section::make('Details')
-                    ->schema([
-                        Components\RepeatableEntry::make('details')
-                            ->schema([
-                                Components\ImageEntry::make('image')
-                                    ->label('Detail Image')
-                                    ->disk('public')
-                                    ->width(400)
-                                    ->height(350)
-                                    ->extraImgAttributes(['alt' => 'Detail Image', 'class' => 'object-cover'])
-                                    ->hidden(fn($state) => empty($state)),
-                                Components\TextEntry::make('image')
-                                    ->label('Detail Image')
-                                    ->default('No image uploaded')
-                                    ->hidden(fn($state) => !empty($state)),
-                                Components\RepeatableEntry::make('blocks')
-                                    ->schema([
-                                        Components\TextEntry::make('title')
-                                            ->label('Block Title')
-                                            ->columnSpanFull(),
-
-                                        Components\RepeatableEntry::make('lists')
-                                            ->label('List Items')
-                                            ->schema([
-                                                Components\TextEntry::make('item')
-                                                    ->label(' ')
-                                                    ->columnSpanFull(),
-                                            ])
-                                            ->columns(2)
-                                            ->columnSpanFull(),
-                                    ])
-                                    ->columns(2)
-                                    ->label('Blocks'),
-
-                            ])
-
-                            ->label('Product Details'),
-                    ])
-                    ->collapsible(),
-
-                Components\Section::make('Conclusion')
-                    ->schema([
-                        Components\TextEntry::make('conclusion.title')->label('Conclusion Title'),
-                        Components\TextEntry::make('conclusion.description')->label('Conclusion Description'),
-                    ])
-                    ->columns(1)
-                    ->collapsible(),
+                    ->columns(2),
             ]);
     }
 
@@ -483,8 +724,8 @@ class ProductResource extends Resource
     {
         return [
             RelationManagers\ImagesRelationManager::class,
-            RelationManagers\BundlesRelationManager::class,
             RelationManagers\VariationsRelationManager::class,
+            // RelationManagers\BundlesRelationManager::class,
         ];
     }
 
@@ -501,5 +742,33 @@ class ProductResource extends Resource
     public static function getNavigationBadge(): ?string
     {
         return static::getModel()::count();
+    }
+
+    protected static function generateCombinations(array $attributes): array
+    {
+        $sets = array_map(function ($attribute) {
+            return array_map(function ($value) use ($attribute) {
+                return [$attribute['name'] => $value];
+            }, $attribute['values']);
+        }, $attributes);
+
+        $combinations = [[]];
+
+        foreach ($sets as $set) {
+            $tmp = [];
+            foreach ($combinations as $product) {
+                foreach ($set as $item) {
+                    $tmp[] = array_merge($product, $item);
+                }
+            }
+            $combinations = $tmp;
+        }
+
+        return $combinations;
+    }
+
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->withTrashed();
     }
 }

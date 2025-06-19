@@ -45,7 +45,7 @@ class UserResource extends Resource
                     Forms\Components\FileUpload::make('avatar')
                         ->nullable()
                         ->image()
-                        ->directory('users_avatars')
+                        ->directory('users/avatars')
                         ->preserveFilenames()
                         ->columnSpanFull(),
                 ])->columns(2)
@@ -58,7 +58,7 @@ class UserResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\ImageColumn::make('avatar')
-                    ->extraImgAttributes(['class' => 'w-12 h-12 object-cover rounded-full'])->defaultImageUrl(url('images/image-not-found-2.jpg'))->circular(),
+                    ->extraImgAttributes(['class' => 'w-12 h-12 object-cover rounded-full'])->defaultImageUrl(url('images/inf-icon.png'))->circular(),
                 Tables\Columns\TextColumn::make('name')->sortable()->searchable(),
                 Tables\Columns\TextColumn::make('email')->sortable(),
                 Tables\Columns\TextColumn::make('roles.name')

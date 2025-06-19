@@ -12,13 +12,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('customers', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
+            $table->id(); 
+            $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
+            $table->string('name')->nullable();
             $table->string('email')->unique();
             $table->string('phone')->nullable();
-            $table->string('address');
+            $table->string('billing_address')->nullable();
+            $table->string('zip_code')->nullable();
+            $table->string('city')->nullable();
+            $table->string('country')->nullable();
+            $table->string('notes')->nullable();
             $table->timestamp('verified_at')->nullable();
-            $table->enum('shipping_zone', ['inside_dhaka', 'outside_dhaka'])->default('inside_dhaka');
             $table->timestamps();
         });
     }
