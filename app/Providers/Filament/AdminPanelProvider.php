@@ -32,10 +32,10 @@ class AdminPanelProvider extends PanelProvider
             ->font('Nunito')
             ->path('admin')
             // ->unsavedChangesAlerts()
-            ->brandName('Heritage Dairy Foods')
-            ->brandLogo(asset('images/logo.svg'))
-            ->brandLogoHeight('2.5rem')
-            ->favicon(asset('images/favicon.png'))
+            ->brandName('Ecommerce')
+            // ->brandLogo(asset('images/logo.svg'))
+            // ->brandLogoHeight('2.5rem')
+            // ->favicon(asset('images/favicon.png'))
             ->maxContentWidth(MaxWidth::Full)
             ->login()
             // ->spa()
@@ -84,6 +84,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->navigationGroups([
                 'Products Management',
+                'Order Management',
                 'User Registry',
                 'Filament Shield',
                 'Account',

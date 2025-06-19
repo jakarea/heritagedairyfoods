@@ -379,12 +379,11 @@ class Cart extends Component
             $this->updateCart();
 
             DB::commit();
-
             session()->flash('success', 'আপনার অর্ডার সফলভাবে গ্রহন করা হয়েছে, অর্ডার নাম্বার ' . $orderNumber);
 
             // send sms
             $orderStatusID = "Your Order ID #{$orderNumber}\n";
-            $message = $orderStatusID ."Your order has been successfully placed! We’ll notify you once it’s being processed. - Heritage Dairy Foods";
+            $message = $orderStatusID ."Your order has been successfully placed! We'll notify you once it's being processed. - Heritage Dairy Foods";
 
             $this->notificationService->sendSms($this->phone_number, $message);
 
@@ -394,7 +393,7 @@ class Cart extends Component
             })->toArray();
 
             // send email
-            $this->notificationService->sendEmail('New Order Placed #' . $orderNumber, $order, $orderItems);
+            // $this->notificationService->sendEmail('New Order Placed #' . $orderNumber, $order, $orderItems);
             // Reset form fields
             $this->reset(['name', 'address', 'phone_number', 'shiping_zone', 'total_price', 'shipingValue']);
             // Redirect to the order page

@@ -48,6 +48,7 @@ class ProductResource extends Resource
                             ->required()
                             ->maxLength(255)
                             ->reactive()
+                            ->live(debounce: 500)
                             ->afterStateUpdated(function ($state, callable $set) {
                                 $set('slug', Str::slug($state));
                             })->columnSpanFull(),
