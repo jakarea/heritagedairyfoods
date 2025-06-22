@@ -13,24 +13,22 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('customer_id')->nullable()->constrained('customers')->onDelete('set null'); 
-            $table->foreignId('order_by')->nullable()->constrained('users')->onDelete('set null')->nullable();
+            $table->foreignId('customer_id')->nullable()->constrained('customers')->onDelete('set null');
+            $table->foreignId('order_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignId('billing_address_id')->constrained('addresses')->onDelete('restrict');
+            $table->foreignId('shipping_address_id')->constrained('addresses')->onDelete('restrict');
+            $table->foreignId('coupon_id')->nullable()->constrained('coupons')->onDelete('set null');
             $table->string('order_number')->unique();
-            $table->string('payment_id')->nullable();
-            $table->enum('payment_method', ['cod', 'cash', 'card'])->default('cod');
- 
             $table->decimal('subtotal', 10, 2)->nullable();
-            $table->decimal('discount', 10, 2)->nullable();
+            $table->decimal('discount_amount', 10, 2)->nullable();
+            $table->decimal('tax_amount', 10, 2)->nullable();
             $table->decimal('shipping_cost', 10, 2)->nullable();
-            $table->decimal('total', 10, 2)->nullable();
-
-            $table->string('phone')->nullable();
-            $table->string('shipping_address')->nullable();
-
-            $table->timestamp('shipped_at')->nullable();
-            $table->timestamp('delivered_at')->nullable();
-            $table->timestamp('canceled_at')->nullable();
-            
+            $table->decimal('total', 10, 2);
+            $table->enum('payment_method', ['cod', 'card', 'paypal', 'stripe', 'bank_transfer'])->default('cod'); 
+            $table->string('shipping_method')->nullable();
+            $table->string('tracking_number')->nullable();
+            $table->string('tracking_carrier')->nullable();
+            $table->text('order_notes')->nullable();    
             $table->enum('status', ['pending', 'processing', 'shipped', 'completed', 'canceled'])->default('pending');
             $table->timestamps();
         });

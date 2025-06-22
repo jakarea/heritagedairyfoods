@@ -4,7 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model; 
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+use Illuminate\Database\Eloquent\Relations\hasOne;
 
 class Customer extends Model
 {
@@ -16,12 +17,7 @@ class Customer extends Model
         'user_id',
         'name',
         'email',
-        'phone',
-        'country', 
-        'division_id', 
-        'district_id', 
-        'thana_id',  
-        'street_address',   
+        'phone', 
         'notes',   
         'verified_at',   
     ];
@@ -31,18 +27,15 @@ class Customer extends Model
         return $this->hasMany(Order::class);
     }
 
-    public function division(): BelongsTo
+    
+
+    public function billingAddress(): hasOne
     {
-        return $this->belongsTo(Division::class);
+        return $this->hasOne(Address::class)->where('type', 'billing');
     }
 
-    public function district(): BelongsTo
+    public function shippingAddress(): hasOne
     {
-        return $this->belongsTo(District::class);
-    }
-
-    public function thana(): BelongsTo
-    {
-        return $this->belongsTo(Thana::class);
+        return $this->hasOne(Address::class)->where('type', 'shipping');
     }
 }

@@ -86,6 +86,7 @@ class AdminPanelProvider extends PanelProvider
                 'Products Management',
                 'Order Management', 
                 'Customer Management',
+                'Marketing Management',
                 'Account',
             ])
             ->navigationItems([

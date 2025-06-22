@@ -38,19 +38,6 @@ class OrderResource extends Resource
             Hidden::make('order_by')
                 ->default(Auth::id())
                 ->required(),
-            Hidden::make('total') 
-                ->nullable(),
-            Hidden::make('subtotal') 
-                ->nullable(),
-            TextInput::make('order_number')
-                ->required()
-                ->default(function () {
-                    do {
-                        $orderNumber = Str::upper(Str::random(8));
-                    } while (Order::where('order_number', $orderNumber)->exists());
-                    return $orderNumber;
-                })
-                ->required()->columnSpanFull(),
             Section::make('Customer Inforation')->schema([
                 Select::make('customer_id')
                     ->label('Select Customer')
@@ -66,21 +53,30 @@ class OrderResource extends Resource
                         if ($customer) {
                             $set('email', $customer->email);
                             $set('phone', $customer->phone);
-                            $set('shipping_address', implode(', ', array_filter([
-                                $customer->street_address,
-                                $customer->upazila,
-                                $customer->district,
-                                $customer->city,
-                                $customer->zip_code,
-                                $customer->country,
-                            ])));
-                        } else {
-                            $set('email', null);
-                            $set('phone', null);
+
+                            // Populate address fields
+                            if ($billingAddress = $customer->billingAddress) {
+                                $set('bill_address_line_1', $billingAddress->address_line_1);
+                                $set('bill_address_line_2', $billingAddress->address_line_2);
+                                $set('bill_country', $billingAddress->country);
+                                $set('bill_division_id', $billingAddress->division?->name);
+                                $set('bill_district_id', $billingAddress->district?->name);
+                                $set('bill_thana_id', $billingAddress->thana?->name);
+                                $set('bill_zip_code', $billingAddress->zip_code);
+                            }
+                            // Populate address fields
+                            if ($shippingAddress = $customer->shippingAddress) {
+                                $set('ship_address_line_1', $shippingAddress->address_line_1);
+                                $set('ship_address_line_2', $shippingAddress->address_line_2);
+                                $set('ship_country', $shippingAddress->country);
+                                $set('ship_division_id', $shippingAddress->division?->name);
+                                $set('ship_district_id', $shippingAddress->district?->name);
+                                $set('ship_thana_id', $shippingAddress->thana?->name);
+                                $set('ship_zip_code', $shippingAddress->zip_code);
+                            }
                         }
                     })
                     ->createOptionForm([
-
                         Section::make('Customer Info')->schema([
                             TextInput::make('name')->required(),
                             TextInput::make('email')
@@ -94,7 +90,6 @@ class OrderResource extends Resource
                                 ->password()
                                 ->required()
                                 ->default('1234567890'),
-
                         ])->columns(2),
                     ])
                     ->createOptionUsing(function (array $data, Set $set) {
@@ -117,9 +112,41 @@ class OrderResource extends Resource
 
                         return $customer->id;
                     }),
+
+                TextInput::make('order_number')
+                    ->required()
+                    ->default(function () {
+                        do {
+                            $orderNumber = Str::upper(Str::random(8));
+                        } while (Order::where('order_number', $orderNumber)->exists());
+                        return $orderNumber;
+                    })
+                    ->required(),
                 TextInput::make('email')->label('Email')->disabled()->visible(fn(string $operation): bool => $operation === 'create'),
                 TextInput::make('phone')->label('Phone'),
-            ])->columns(3),
+            ])->columns(2),
+
+            // billing info
+            Section::make('Billing Details')->schema([
+                TextInput::make('bill_address_line_1')->label('Address Line 1')->nullable(),
+                TextInput::make('bill_address_line_2')->label('Address Line 2')->nullable(),
+                TextInput::make('bill_country')->label('Country')->nullable(),
+                TextInput::make('bill_division_id')->label('Division')->nullable(),
+                TextInput::make('bill_district_id')->label('District')->nullable(),
+                TextInput::make('bill_thana_id')->label('Thana')->nullable(),
+                TextInput::make('bill_zip_code')->label('Zip Code')->nullable(),
+            ])->columns(4),
+
+            // shipping info
+            Section::make('Shipping Details')->schema([
+                TextInput::make('ship_address_line_1')->label('Address Line 1')->nullable(),
+                TextInput::make('ship_address_line_2')->label('Address Line 2')->nullable(),
+                TextInput::make('ship_country')->label('Country')->nullable(),
+                TextInput::make('ship_division_id')->label('Division')->nullable(),
+                TextInput::make('ship_district_id')->label('District')->nullable(),
+                TextInput::make('ship_thana_id')->label('Thana')->nullable(),
+                TextInput::make('ship_zip_code')->label('Zip Code')->nullable(),
+            ])->columns(4),
 
             Section::make('Product Selection')->schema([
                 Select::make('product_id')
@@ -166,10 +193,19 @@ class OrderResource extends Resource
                             ->columnSpan(6),
                         TextInput::make('price')
                             ->label('Price')
-                            // ->disabled()
+                            ->reactive()
                             ->required()
                             ->prefix('BDT')
-                            ->columnSpan(3),
+                            ->columnSpan(3)
+                            ->afterStateUpdated(function (callable $set, callable $get) {
+                                $products = $get('selected_products') ?? [];
+                                $subtotal = collect($products)->sum(function ($item) {
+                                    return $item['quantity'] * $item['price'];
+                                });
+                                $set('subtotal', $subtotal);
+                                $shippingCost = $get('shipping_cost') ?? 0;
+                                $set('total', $subtotal + $shippingCost);
+                            }),
                         TextInput::make('quantity')
                             ->label('Quantity')
                             ->numeric()
@@ -193,35 +229,26 @@ class OrderResource extends Resource
                     ->addable(false)
                     ->reorderable(false)
                     ->default([])
+                    ->live()
                     ->required(),
             ])->columns(1)
                 ->visible(fn(string $operation): bool => $operation === 'create'),
 
             Section::make('Order Details')->schema([
-                TextInput::make('subtotal')
-                    ->default(0)
-                    ->prefix('BDT')
-                    ->reactive(),
-                TextInput::make('total')
-                    ->default(0)
-                    ->prefix('BDT')
-                    ->reactive(),
 
-                DateTimePicker::make('shipped_at')
-                    ->label('Shipped Date')
-                    ->placeholder('N/A'),
+                Select::make('payment_method')
+                    ->label('Payment Method')
+                    ->searchable()
+                    ->required()
+                    ->options([
+                        'cod' => 'COD',
+                        'cash' => 'Cash',
+                        'card' => 'Card',
+                    ]),
 
-                DateTimePicker::make('delivered_at')
-                    ->label('Delivered Date')
-                    ->placeholder('N/A'),
+                TextInput::make('shipping_method')
+                    ->nullable(),
 
-                DateTimePicker::make('canceled_at')
-                    ->label('Canceled Date')
-                    ->placeholder('N/A'),
-
-            ])->columns(3)->visible(fn(string $operation): bool => $operation === 'edit'),
-
-            Section::make('Shipping Details')->schema([
                 TextInput::make('shipping_cost')
                     ->label('Shipping Cost')
                     ->numeric()
@@ -232,15 +259,18 @@ class OrderResource extends Resource
                         $subtotal = $get('subtotal') ?? 0;
                         $set('total', $subtotal + ($state ?? 0));
                     }),
-                Select::make('payment_method')
-                    ->label('Payment Method')
-                    ->searchable()
-                    ->required()
-                    ->options([
-                        'cod' => 'COD',
-                        'cash' => 'Cash',
-                        'card' => 'Card',
-                    ]),
+
+                TextInput::make('subtotal')
+                    ->default(0)
+                    ->prefix('BDT')
+                    ->nullable()
+                    ->reactive(),
+                TextInput::make('total')
+                    ->default(0)
+                    ->prefix('BDT')
+                    ->nullable()
+                    ->reactive(),
+
                 Select::make('status')
                     ->options([
                         'pending' => 'Pending',
@@ -249,11 +279,11 @@ class OrderResource extends Resource
                         'completed' => 'Completed',
                         'canceled' => 'Canceled',
                     ]),
-                TextInput::make('shipping_address')
-                    ->label('Shipping Address')
-                    ->nullable()
-                    ->columnSpanFull(),
+
+                Textarea::make('order_notes')->nullable()->columnSpanFull(),
+
             ])->columns(3),
+
         ]);
     }
 
