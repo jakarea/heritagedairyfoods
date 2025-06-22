@@ -84,9 +84,8 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->navigationGroups([
                 'Products Management',
-                'Order Management',
-                'User Registry',
-                'Filament Shield',
+                'Order Management', 
+                'Customer Management',
                 'Account',
             ])
             ->navigationItems([

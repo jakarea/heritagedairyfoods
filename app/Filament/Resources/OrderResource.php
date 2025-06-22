@@ -12,7 +12,6 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Support\Str;
@@ -20,8 +19,10 @@ use Illuminate\Support\Facades\Auth;
 use Filament\Infolists\Infolist;
 use Filament\Infolists\Components;
 use Illuminate\Support\Facades\Hash;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
 use Filament\Tables\Actions\{EditAction, DeleteAction, ViewAction, ForceDeleteAction, RestoreAction};
-use Filament\Forms\Components\{TextInput,DateTimePicker, Select, Textarea, FileUpload, Grid, Toggle, Repeater, RichEditor, Section, Hidden};
+use Filament\Forms\Components\{TextInput, DateTimePicker, Select, Textarea, FileUpload, Grid, Toggle, Repeater, RichEditor, Section, Hidden};
 
 class OrderResource extends Resource
 {
@@ -37,6 +38,10 @@ class OrderResource extends Resource
             Hidden::make('order_by')
                 ->default(Auth::id())
                 ->required(),
+            Hidden::make('total') 
+                ->nullable(),
+            Hidden::make('subtotal') 
+                ->nullable(),
             TextInput::make('order_number')
                 ->required()
                 ->default(function () {
@@ -46,45 +51,76 @@ class OrderResource extends Resource
                     return $orderNumber;
                 })
                 ->required()->columnSpanFull(),
-            Section::make('Customer Details')->schema([
+            Section::make('Customer Inforation')->schema([
                 Select::make('customer_id')
-                    ->label('Customers')
+                    ->label('Select Customer')
                     ->options(function () {
                         return Customer::pluck('name', 'id');
                     })
                     ->searchable()
                     ->required()
                     ->preload()
+                    ->reactive()
+                    ->afterStateUpdated(function ($state, Set $set) {
+                        $customer = Customer::find($state);
+                        if ($customer) {
+                            $set('email', $customer->email);
+                            $set('phone', $customer->phone);
+                            $set('shipping_address', implode(', ', array_filter([
+                                $customer->street_address,
+                                $customer->upazila,
+                                $customer->district,
+                                $customer->city,
+                                $customer->zip_code,
+                                $customer->country,
+                            ])));
+                        } else {
+                            $set('email', null);
+                            $set('phone', null);
+                        }
+                    })
                     ->createOptionForm([
-                        TextInput::make('name')
-                            ->required(),
-                        TextInput::make('email')
-                            ->required()
-                            ->email()
-                            ->unique(Customer::class, 'email'),
-                        TextInput::make('password')
-                            ->password()
-                            ->required(),
+
+                        Section::make('Customer Info')->schema([
+                            TextInput::make('name')->required(),
+                            TextInput::make('email')
+                                ->required()
+                                ->email()
+                                ->unique(Customer::class, 'email'),
+                            TextInput::make('phone')
+                                ->label('Phone')
+                                ->required(),
+                            TextInput::make('password')
+                                ->password()
+                                ->required()
+                                ->default('1234567890'),
+
+                        ])->columns(2),
                     ])
-                    ->createOptionUsing(function (array $data) {
-                        // First create the user
+                    ->createOptionUsing(function (array $data, Set $set) {
                         $user = User::create([
                             'name' => $data['name'],
                             'email' => $data['email'],
                             'password' => Hash::make($data['password']),
                         ]);
 
-                        // Then create the customer with the user_id
                         $customer = Customer::create([
                             'name' => $data['name'],
                             'email' => $data['email'],
+                            'phone' => $data['phone'],
                             'user_id' => $user->id,
                         ]);
 
+                        // Set the other fields after customer creation
+                        $set('email', $customer->email);
+                        $set('phone', $customer->phone);
+
                         return $customer->id;
                     }),
-                TextInput::make('billing_phone')->label('Phone'),
+                TextInput::make('email')->label('Email')->disabled(),
+                TextInput::make('phone')->label('Phone'),
             ])->columns(3),
+
             Section::make('Product Selection')->schema([
                 Select::make('product_id')
                     ->label('Select Product')
@@ -112,10 +148,10 @@ class OrderResource extends Resource
                                 $subtotal = collect($products)->sum(function ($item) {
                                     return $item['quantity'] * $item['price'];
                                 });
-                                $set('subtotal_price', $subtotal);
+                                $set('subtotal', $subtotal);
                                 // Update total
                                 $shippingCost = $get('shipping_cost') ?? 0;
-                                $set('total_price', $subtotal + $shippingCost);
+                                $set('total', $subtotal + $shippingCost);
                                 $set('product_id', null, false);
                             }
                         }
@@ -145,9 +181,9 @@ class OrderResource extends Resource
                                 $subtotal = collect($products)->sum(function ($item) {
                                     return $item['quantity'] * $item['price'];
                                 });
-                                $set('subtotal_price', $subtotal);
+                                $set('subtotal', $subtotal);
                                 $shippingCost = $get('shipping_cost') ?? 0;
-                                $set('total_price', $subtotal + $shippingCost);
+                                $set('total', $subtotal + $shippingCost);
                             })
                             ->columnSpan(3),
                     ])
@@ -155,50 +191,37 @@ class OrderResource extends Resource
                     ->itemLabel(fn(array $state): ?string => $state['name'] ?? null)
                     ->deletable()
                     ->addable(false)
+                    ->reorderable(false)
                     ->default([])
                     ->required(),
             ])->columns(1)
                 ->visible(fn(string $operation): bool => $operation === 'create'),
 
             Section::make('Order Details')->schema([
-                TextInput::make('subtotal_price')
+                TextInput::make('subtotal')
                     ->default(0)
                     ->prefix('BDT')
                     ->reactive(),
-                TextInput::make('total_price')
+                TextInput::make('total')
                     ->default(0)
                     ->prefix('BDT')
                     ->reactive(),
 
                 DateTimePicker::make('shipped_at')
-                    ->label('Shipped Date') 
+                    ->label('Shipped Date')
                     ->placeholder('N/A'),
 
                 DateTimePicker::make('delivered_at')
-                    ->label('Delivered Date') 
+                    ->label('Delivered Date')
                     ->placeholder('N/A'),
 
                 DateTimePicker::make('canceled_at')
-                    ->label('Canceled Date') 
+                    ->label('Canceled Date')
                     ->placeholder('N/A'),
 
             ])->columns(3)->visible(fn(string $operation): bool => $operation === 'edit'),
 
             Section::make('Shipping Details')->schema([
-                Select::make('shipping_zone')
-                    ->label('Shipping Zone')
-                    ->searchable()
-                    ->required()
-                    ->options([
-                        'dhaka' => 'Dhaka',
-                        'rangpur' => 'Rangpur',
-                        'rajshahi' => 'Rajshahi',
-                        'khulna' => 'Khulna',
-                        'barishal' => 'Barishal',
-                        'chitagong' => 'Chitagong',
-                        'sylhet' => 'Sylhet',
-                        'mymensingh' => 'Mymensingh',
-                    ]),
                 TextInput::make('shipping_cost')
                     ->label('Shipping Cost')
                     ->numeric()
@@ -206,8 +229,8 @@ class OrderResource extends Resource
                     ->prefix('BDT')
                     ->reactive()
                     ->afterStateUpdated(function ($state, callable $set, callable $get) {
-                        $subtotal = $get('subtotal_price') ?? 0;
-                        $set('total_price', $subtotal + ($state ?? 0));
+                        $subtotal = $get('subtotal') ?? 0;
+                        $set('total', $subtotal + ($state ?? 0));
                     }),
                 Select::make('payment_method')
                     ->label('Payment Method')
@@ -215,9 +238,7 @@ class OrderResource extends Resource
                     ->required()
                     ->options([
                         'cod' => 'COD',
-                        'bkash' => 'Bkash',
-                        'nagad' => 'Nagad',
-                        'rocket' => 'Rocket',
+                        'cash' => 'Cash',
                         'card' => 'Card',
                     ]),
                 Select::make('status')
@@ -228,10 +249,10 @@ class OrderResource extends Resource
                         'completed' => 'Completed',
                         'canceled' => 'Canceled',
                     ]),
-                TextInput::make('billing_address')
+                TextInput::make('shipping_address')
                     ->label('Shipping Address')
                     ->nullable()
-                    ->columnSpan(2),
+                    ->columnSpanFull(),
             ])->columns(3),
         ]);
     }
@@ -246,7 +267,7 @@ class OrderResource extends Resource
                     ->label('Total Items')
                     ->sortable()
                     ->getStateUsing(fn($record) => $record->orderItems->count()),
-                TextColumn::make('total_price')->money('bdt')->sortable(),
+                TextColumn::make('total')->money('bdt')->sortable(),
                 TextColumn::make('status')
                     ->badge(fn($state) => match ($state) {
                         'pending' => 'primary',
@@ -297,7 +318,7 @@ class OrderResource extends Resource
                         Components\TextEntry::make('customer.email')->label('Email'),
                         Components\TextEntry::make('customer.phone')->label('Phone'),
                         Components\TextEntry::make('customer.zip_code')->label('Zip Code'),
-                        Components\TextEntry::make('customer.billing_address')->label('Billing Address'),
+                        Components\TextEntry::make('customer.address')->label('Address'),
                         Components\TextEntry::make('customer.city')->label('City'),
                         Components\TextEntry::make('customer.country')->label('Country'),
                         Components\TextEntry::make('customer.notes')->label('Notes')->columnSpan(2),
@@ -308,9 +329,9 @@ class OrderResource extends Resource
                     ->schema([
                         Components\TextEntry::make('payment_method')->label('Payment Method'),
                         Components\TextEntry::make('order_number')->label('Order Number'),
-                        Components\TextEntry::make('subtotal_price')->money('bdt'),
+                        Components\TextEntry::make('subtotal')->money('bdt'),
                         Components\TextEntry::make('shipping_cost')->money('bdt'),
-                        Components\TextEntry::make('total_price')->money('bdt'),
+                        Components\TextEntry::make('total')->money('bdt'),
                         Components\TextEntry::make('status')->badge()
                             ->color(function ($state) {
                                 return match ($state) {

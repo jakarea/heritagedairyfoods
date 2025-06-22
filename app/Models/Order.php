@@ -12,24 +12,21 @@ class Order extends Model
     use HasFactory;
 
     protected $fillable = [
-        'customer_id',
-        'session_id',
+        'customer_id', 
         'order_by',
         'order_number',
         'payment_id',
-        'discount_code',
-        'discount_amount',
-        'total_price',
-        'subtotal_price',
-        'shipping_cost',
-        'billing_address',
-        'billing_phone',
-        'shipping_zone',
-        'shipped_at',
-        'delivered_at',
-        'canceled_at',
-        'payment_method',
-        'status',
+        'payment_method', 
+        'subtotal', 
+        'discount', 
+        'shipping_cost', 
+        'total', 
+        'phone', 
+        'shipping_address', 
+        'shipped_at', 
+        'delivered_at', 
+        'canceled_at', 
+        'status',  
     ];
 
     protected static function booted()

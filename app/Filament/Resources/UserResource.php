@@ -16,7 +16,7 @@ class UserResource extends Resource
 {
     protected static ?string $model = User::class;
     protected static ?string $navigationIcon = 'heroicon-o-users';
-    protected static ?string $navigationGroup = 'User Registry';
+    protected static ?string $navigationGroup = 'Account';
     protected static ?string $navigationBadgeTooltip = 'The number of users';
 
     public static function shouldRegisterNavigation(): bool
