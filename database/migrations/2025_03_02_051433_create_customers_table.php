@@ -17,9 +17,11 @@ return new class extends Migration
             $table->string('name')->nullable();
             $table->string('email')->unique();
             $table->string('phone')->nullable();
-            $table->string('billing_address')->nullable();
-            $table->string('zip_code')->nullable();
+            $table->string('street_address')->nullable();
+            $table->string('district')->nullable();
+            $table->string('upazila')->nullable();
             $table->string('city')->nullable();
+            $table->string('zip_code')->nullable();
             $table->string('country')->nullable();
             $table->string('notes')->nullable();
             $table->timestamp('verified_at')->nullable();

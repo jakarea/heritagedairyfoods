@@ -13,28 +13,24 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('customer_id')->nullable()->constrained('customers')->onDelete('set null');
-            $table->string('session_id')->nullable();
-            $table->foreignId('order_by')->nullable()->constrained('users')->onDelete('set null');
-
+            $table->foreignId('customer_id')->nullable()->constrained('customers')->onDelete('set null'); 
+            $table->foreignId('order_by')->nullable()->constrained('users')->onDelete('set null')->nullable();
             $table->string('order_number')->unique();
             $table->string('payment_id')->nullable();
+            $table->enum('payment_method', ['cod', 'cash', 'card'])->default('cod');
+ 
+            $table->decimal('subtotal', 10, 2)->nullable();
+            $table->decimal('discount', 10, 2)->nullable();
+            $table->decimal('shipping_cost', 10, 2)->nullable();
+            $table->decimal('total', 10, 2)->nullable();
 
-            $table->string('discount_code')->nullable();
-            $table->decimal('discount_amount', 10, 2)->nullable();
-            $table->decimal('total_price', 10, 2)->nullable();
-            $table->decimal('subtotal_price', 10, 2)->nullable();
-            $table->decimal('shipping_cost', 10, 2)->default(0);
-
-            $table->string('billing_address')->nullable();
-            $table->string('billing_phone')->nullable();
-            $table->enum('shipping_zone', ['dhaka', 'rangpur', 'rajshahi', 'khulna', 'barishal', 'chitagong', 'sylhet', 'mymensingh'])->default('dhaka');
+            $table->string('phone')->nullable();
+            $table->string('shipping_address')->nullable();
 
             $table->timestamp('shipped_at')->nullable();
             $table->timestamp('delivered_at')->nullable();
             $table->timestamp('canceled_at')->nullable();
             
-            $table->enum('payment_method', ['cod', 'bkash', 'nagad', 'rocket', 'card'])->default('cod');
             $table->enum('status', ['pending', 'processing', 'shipped', 'completed', 'canceled'])->default('pending');
             $table->timestamps();
         });

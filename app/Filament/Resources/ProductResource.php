@@ -181,7 +181,7 @@ class ProductResource extends Resource
                                 'flat' => 'Flat',
                                 'percentage' => 'Percentage',
                             ])
-                            ->default('flat'),
+                            ->nullable(),
                         TextInput::make('stock')
                             ->nullable()
                             ->numeric()

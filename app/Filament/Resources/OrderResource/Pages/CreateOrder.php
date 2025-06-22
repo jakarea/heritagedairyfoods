@@ -20,10 +20,10 @@ class CreateOrder extends CreateRecord
         DB::transaction(function () {
             $order = $this->record;
             $data = $this->form->getState();
-
+ 
 
             if (!empty($data['selected_products']) && is_array($data['selected_products'])) {
-                // dd($data['selected_products']);
+ 
                 foreach ($data['selected_products'] as $product) {
                     OrderItem::create([
                         'order_id'     => $order['id'],
