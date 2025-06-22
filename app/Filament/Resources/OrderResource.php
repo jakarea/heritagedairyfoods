@@ -117,7 +117,7 @@ class OrderResource extends Resource
 
                         return $customer->id;
                     }),
-                TextInput::make('email')->label('Email')->disabled(),
+                TextInput::make('email')->label('Email')->disabled()->visible(fn(string $operation): bool => $operation === 'create'),
                 TextInput::make('phone')->label('Phone'),
             ])->columns(3),
 

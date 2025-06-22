@@ -10,6 +10,8 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Models\Product;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class OrderItemsRelationManager extends RelationManager
 {
@@ -36,7 +38,7 @@ class OrderItemsRelationManager extends RelationManager
                             }
                         }
                     }),
-                
+
                 Forms\Components\TextInput::make('quantity')
                     ->label('Quantity')
                     ->numeric()
@@ -48,7 +50,7 @@ class OrderItemsRelationManager extends RelationManager
                         $price = $get('price') ?? 0;
                         $set('subtotal', $price * ($state ?? 1));
                     }),
-                    
+
                 Forms\Components\TextInput::make('price')
                     ->label('Unit Price')
                     ->numeric()
@@ -59,12 +61,11 @@ class OrderItemsRelationManager extends RelationManager
                         $quantity = $get('quantity') ?? 1;
                         $set('subtotal', ($state ?? 0) * $quantity);
                     }),
-                    
+
                 Forms\Components\TextInput::make('subtotal')
                     ->label('Subtotal')
                     ->numeric()
                     ->prefix('BDT')
-                    ->disabled()
                     ->dehydrated(),
             ])
             ->columns(2);
@@ -91,16 +92,35 @@ class OrderItemsRelationManager extends RelationManager
                 //
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make(),
+                Tables\Actions\CreateAction::make()->after(function (array $data, string $model) {
+                    $this->updateOwnerRecord();
+                }),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\EditAction::make()->after(function (array $data, string $model) {
+                    $this->updateOwnerRecord();
+                }),
+                Tables\Actions\DeleteAction::make()->after(function (array $data, string $model) {
+                    $this->updateOwnerRecord();
+                }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
+    }
+
+    protected function updateOwnerRecord(): void
+    {
+        $order = $this->getOwnerRecord();
+        $orderItems = $this->getOwnerRecord()->orderItems;
+        $totalSubtotal = $orderItems->sum('subtotal');
+
+        $order->subtotal = $totalSubtotal;
+        $order->total = $totalSubtotal + $order->shipping_cost;
+        
+        $order->save(); 
+ 
     }
 }
