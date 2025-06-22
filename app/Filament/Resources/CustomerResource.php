@@ -5,19 +5,21 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\CustomerResource\Pages;
 use App\Filament\Resources\CustomerResource\RelationManagers;
 use App\Models\Customer;
-use Filament\Forms;
+use App\Models\Division;
+use App\Models\District;
+use App\Models\Thana;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Components\{TextInput, Textarea, Select, DateTimePicker, Section};
-use Filament\Forms\Get; 
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Columns\IconColumn;
-use Filament\Tables\Columns\BadgeColumn;
-use Filament\Tables\Columns\ToggleColumn;
+use Filament\Tables\Columns\TextColumn; 
+use Filament\Infolists\Components\Section as InfolistSection;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Infolist;
+use Illuminate\Support\Carbon;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\{EditAction, DeleteAction, ViewAction, ForceDeleteAction, RestoreAction};
 
 class CustomerResource extends Resource
 {
@@ -49,34 +51,49 @@ class CustomerResource extends Resource
                         ->tel()
                         ->maxLength(20),
 
-                    TextInput::make('street_address')
-                        ->label('Street Address')
-                        ->required()
-                        ->maxLength(255),
-
-                    TextInput::make('district')
-                        ->label('District')
-                        ->required(),
-
-                    TextInput::make('upazila')
-                        ->label('Upazila / Thana')
-                        ->required(),
-
-                    TextInput::make('zip_code')
-                        ->label('Zip Code')
-                        ->numeric()
-                        ->maxLength(10),
-
-                    TextInput::make('city')
-                        ->label('City')
-                        ->required()
-                        ->maxLength(100),
-
                     TextInput::make('country')
                         ->label('Country')
                         ->default('Bangladesh')
                         ->required()
                         ->maxLength(100),
+
+
+
+                    Select::make('division_id')
+                        ->label('Division')
+                        ->options(Division::all()->pluck('name', 'id'))
+                        ->reactive()
+                        ->afterStateUpdated(fn(callable $set) => $set('district_id', null)) // Reset district when division changes
+                        ->required(),
+
+                    Select::make('district_id')
+                        ->label('District')
+                        ->options(function (callable $get) {
+                            $divisionId = $get('division_id');
+                            if ($divisionId) {
+                                return District::where('division_id', $divisionId)->pluck('name', 'id');
+                            }
+                            return [];
+                        })
+                        ->reactive()
+                        ->afterStateUpdated(fn(callable $set) => $set('thana_id', null)) // Reset thana when district changes
+                        ->required(),
+
+                    Select::make('thana_id')
+                        ->label('Upazila / Thana')
+                        ->options(function (callable $get) {
+                            $districtId = $get('district_id');
+                            if ($districtId) {
+                                return Thana::where('district_id', $districtId)->pluck('name', 'id');
+                            }
+                            return [];
+                        })
+                        ->required(),
+
+                    TextInput::make('street_address')
+                        ->label('Street Address')
+                        ->required()
+                        ->maxLength(255),
 
                     DateTimePicker::make('verified_at')
                         ->label('Verified At')
@@ -110,46 +127,106 @@ class CustomerResource extends Resource
                 TextColumn::make('phone')
                     ->sortable(),
 
-                TextColumn::make('district')
-                    ->sortable(),
-
-                TextColumn::make('upazila')
-                    ->label('Thana')
-                    ->sortable(),
-
-                TextColumn::make('city')
-                    ->sortable(),
-
                 TextColumn::make('country')
                     ->sortable(),
 
-                TextColumn::make('verified_at')
-                    ->label('Verified')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(),
+                TextColumn::make('division.name')
+                    ->sortable(),
 
-                TextColumn::make('created_at')
-                    ->label('Created')
-                    ->dateTime()
-                    ->since(), // shows “2 days ago”
+                TextColumn::make('district.name')
+                    ->sortable(),
+
+                TextColumn::make('thana.name')
+                    ->sortable(), 
+
+                TextColumn::make('street_address')->limit(35)->searchable(), 
 
             ])
             ->filters([
                 // Example filter (optional)
-                Tables\Filters\SelectFilter::make('district')
-                    ->options(\App\Models\Customer::query()->pluck('district', 'district')->unique())
+                Tables\Filters\SelectFilter::make('district_id')
+                    ->options(\App\Models\Customer::query()->pluck('district_id', 'district_id')->unique())
                     ->label('Filter by District'),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
+                ActionGroup::make([
+                    // Action::make('view-order-details')
+                    //     ->label('Order Details')
+                    //     ->icon('heroicon-o-currency-dollar')
+                    //     ->color('info')
+                    //     ->url(fn($record) => url('admin/orders/details', ['id' => $record->id])),
+                    ViewAction::make(),
+                    EditAction::make(),
+                    DeleteAction::make(),
+                ]),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
+    }
+
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+        ->schema([
+            InfolistSection::make('Basic Information')
+                ->columns(2)
+                ->schema([
+                    TextEntry::make('name')
+                        ->label('Customer Name')
+                        ->weight('bold'),
+                    TextEntry::make('email')
+                        ->label('Email Address'),
+                    TextEntry::make('phone')
+                        ->label('Phone Number'),
+                    TextEntry::make('country')
+                        ->label('Country')
+                        ->placeholder('Not specified'),
+                ]),
+
+            InfolistSection::make('Location Details')
+                ->columns(3)
+                ->schema([
+                    TextEntry::make('division.name')
+                        ->label('Division')
+                        ->placeholder('Not specified')
+                        ->default('Not specified'),
+                    TextEntry::make('district.name')
+                        ->label('District')
+                        ->placeholder('Not specified')
+                        ->default('Not specified'),
+                    TextEntry::make('thana.name')
+                        ->label('Thana / Upazila')
+                        ->placeholder('Not specified')
+                        ->default('Not specified'),
+                ]),
+
+            InfolistSection::make('Address')
+                ->schema([
+                    TextEntry::make('street_address')
+                        ->label('Street Address')
+                        ->placeholder('Not specified')
+                        ->columnSpanFull(),
+                ]),
+
+            InfolistSection::make('Additional Information')
+                ->columns(12)
+                ->schema([
+                    TextEntry::make('verified_at')
+                        ->label('Verified At')
+                        ->columnSpan(2)
+                        ->placeholder('Not verified')
+                        ->dateTime('Y-m-d H:i:s')
+                        ->formatStateUsing(fn ($state): string => $state ? Carbon::parse($state)->diffForHumans() : 'Not verified'),
+                    TextEntry::make('notes')
+                        ->label('Notes')
+                        ->placeholder('No notes available')
+                        ->columnSpan(10)
+                        ->markdown(),
+                ]),
+        ]);
     }
 
 

@@ -24,7 +24,7 @@ return new class extends Migration
             $table->longText('description')->nullable();
             $table->decimal('base_price', 10, 2)->nullable();
             $table->decimal('discount_price', 10, 2)->nullable();
-            $table->enum('discount_in', ['flat', 'percentage'])->default('flat');
+            $table->enum('discount_in', ['flat', 'percentage'])->nullable();
             $table->integer('stock')->default(0);
             $table->string('sku', 50)->unique()->nullable();
             $table->enum('status', ['active', 'draft', 'out_of_stock', 'archived'])->default('active');
