@@ -55,32 +55,20 @@ class OrderResource extends Resource
                             $set('phone', $customer->phone);
 
                             // Populate address fields
-                            if ($billingAddress = $customer->billingAddress) {
-                                $billingAddressParts = [
-                                    $billingAddress->address_line_1,
-                                    $billingAddress->address_line_2,
-                                    $billingAddress->country,
-                                    $billingAddress->division?->name,
-                                    $billingAddress->district?->name,
-                                    $billingAddress->thana?->name,
-                                    $billingAddress->zip_code,
+                            if ($address = $customer->address) {
+                                $addressParts = [
+                                    $address->address_line_1,
+                                    $address->address_line_2,
+                                    $address->country,
+                                    $address->division?->name,
+                                    $address->district?->name,
+                                    $address->thana?->name,
+                                    $address->zip_code,
                                 ];
 
-                                $set('billing_address', implode(', ', array_filter($billingAddressParts)));
-                            }
-                            if ($shippingAddress = $customer->shippingAddress) {
-                                $shippingAddressParts = [
-                                    $shippingAddress->address_line_1,
-                                    $shippingAddress->address_line_2,
-                                    $shippingAddress->country,
-                                    $shippingAddress->division?->name,
-                                    $shippingAddress->district?->name,
-                                    $shippingAddress->thana?->name,
-                                    $shippingAddress->zip_code,
-                                ];
-
-                                $set('shipping_address', implode(', ', array_filter($shippingAddressParts)));
-                            }
+                                $set('billing_address', implode(', ', array_filter($addressParts)));
+                                $set('shipping_address', implode(', ', array_filter($addressParts)));
+                            } 
                         }
                     })
                     ->createOptionForm([
@@ -181,7 +169,7 @@ class OrderResource extends Resource
                     ->label('Selected Products')
                     ->schema([
                         TextInput::make('name')
-                            ->label('Product Name') 
+                            ->label('Product Name')
                             ->required()
                             ->columnSpan(6),
                         TextInput::make('price')
@@ -191,7 +179,7 @@ class OrderResource extends Resource
                             ->prefix('BDT')
                             ->columnSpan(3)
                             ->afterStateUpdated(function (callable $set, callable $get) {
-                                $products = $get('../../selected_products') ?? []; 
+                                $products = $get('../../selected_products') ?? [];
                                 $subtotal = collect($products)->sum(function ($item) {
                                     return $item['quantity'] * $item['price'];
                                 });
@@ -341,20 +329,34 @@ class OrderResource extends Resource
                         Components\TextEntry::make('customer.name')->label('Name'),
                         Components\TextEntry::make('customer.email')->label('Email'),
                         Components\TextEntry::make('customer.phone')->label('Phone'),
-                        Components\TextEntry::make('customer.zip_code')->label('Zip Code'),
-                        Components\TextEntry::make('customer.address')->label('Address'),
-                        Components\TextEntry::make('customer.city')->label('City'),
-                        Components\TextEntry::make('customer.country')->label('Country'),
+                        Components\TextEntry::make('customer.address.zip_code')->label('Zip Code'),
+                        Components\TextEntry::make('customer.address.address_line_1')->label('Street Address One'),
+                        Components\TextEntry::make('customer.address.address_line_2')->label('Street Address Two'),
+                        Components\TextEntry::make('customer.address.division.name')->label('Division'),
+                        Components\TextEntry::make('customer.address.district.name')->label('District'),
+                        Components\TextEntry::make('customer.address.thana.name')->label('Thana'),
+                        Components\TextEntry::make('customer.address.country')->label('Country'),
                         Components\TextEntry::make('customer.notes')->label('Notes')->columnSpan(2),
                     ])
                     ->columns(3),
 
                 Components\Section::make('Order Details')
                     ->schema([
-                        Components\TextEntry::make('payment_method')->label('Payment Method'),
+                        Components\TextEntry::make('coupon.code')->label('Cupon Code')->placeholder('N/A'),
                         Components\TextEntry::make('order_number')->label('Order Number'),
-                        Components\TextEntry::make('subtotal')->money('bdt'),
-                        Components\TextEntry::make('shipping_cost')->money('bdt'),
+                        Components\TextEntry::make('shipping_method')->label('Shipping Method'),
+                        Components\TextEntry::make('payment_method')->formatStateUsing(function ($state) {
+                            return [
+                                'cod' => 'Cash On Delivery',
+                                'card' => 'Card',
+                                'cash' => 'Cash',
+                                'bank_transfer' => 'Bank Transfer',
+                            ][$state] ?? ucfirst($state);
+                        })->label('Payment Method'),
+                        Components\TextEntry::make('discount_amount')->label('Discount Amount')->money('bdt')->placeholder('0.00'),
+                        Components\TextEntry::make('tax_amount')->label('Tax Amount')->money('bdt')->placeholder('0.00'),
+                        Components\TextEntry::make('subtotal')->money('bdt')->placeholder('0.00'),
+                        Components\TextEntry::make('shipping_cost')->money('bdt')->placeholder('0.00'),
                         Components\TextEntry::make('total')->money('bdt'),
                         Components\TextEntry::make('status')->badge()
                             ->color(function ($state) {
@@ -367,39 +369,27 @@ class OrderResource extends Resource
                                     default => 'secondary',
                                 };
                             }),
+                        Components\TextEntry::make('order_notes')->label('Order Notes')->columnSpan(2)->placeholder('N/A'),
                     ])
                     ->columns(3),
 
-                Components\Section::make('Order Shipping Address')
+                Components\Section::make('Order Address')
                     ->schema([
-                        Components\TextEntry::make('billing_phone')->label('Shipping Phone')->columnSpan(2),
-                        Components\TextEntry::make('shipping_zone')->label('Shipping Zone')->columnSpan(1),
-                        Components\TextEntry::make('billing_address')->label('Shipping Address')->columnSpan(3),
+                        Components\TextEntry::make('billing_address')->label('Billing Address'),
+                        Components\TextEntry::make('shipping_address')->label('Shipping Phone'),
                     ])
-                    ->columns(6),
+                    ->columns(2),
 
                 Components\Section::make('Order Tracking')
                     ->schema([
+
+                        Components\TextEntry::make('tracking_number')->label('Tracking Number')->placeholder('N/A'),
+                        Components\TextEntry::make('tracking_carrier')->label('Tracking Carrier')->placeholder('N/A'),
+
                         Components\TextEntry::make('created_at')
                             ->label('Order Date')
                             ->dateTime('M j, Y g:i A')
                             ->placeholder('N/A'),
-
-                        Components\TextEntry::make('shipped_at')
-                            ->label('Shipped Date')
-                            ->dateTime('M j, Y g:i A')
-                            ->placeholder('N/A'),
-
-                        Components\TextEntry::make('delivered_at')
-                            ->label('Delivered Date')
-                            ->dateTime('M j, Y g:i A')
-                            ->placeholder('N/A'),
-
-                        Components\TextEntry::make('canceled_at')
-                            ->label('Canceled Date')
-                            ->dateTime('M j, Y g:i A')
-                            ->placeholder('N/A')
-                            ->visible(fn($record) => !is_null($record->canceled_at)),
                     ])
                     ->columns(3),
             ]);

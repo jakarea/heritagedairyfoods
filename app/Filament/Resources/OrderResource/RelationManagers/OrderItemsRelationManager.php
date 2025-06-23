@@ -92,21 +92,43 @@ class OrderItemsRelationManager extends RelationManager
                 //
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make()->after(function (array $data, string $model) {
-                    $this->updateOwnerRecord();
-                }),
+                Tables\Actions\CreateAction::make()
+                    ->before(function (array $data) {
+                        $order = $this->getOwnerRecord();
+                        $exists = $order->orderItems()->where('product_id', $data['product_id'])->exists();
+
+                        if ($exists) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Duplicate Product')
+                                ->body('This product is already added to the order. Please edit the existing item or choose a different product.')
+                                ->danger()
+                                ->send();
+                            throw \Illuminate\Validation\ValidationException::withMessages([
+                                'product_id' => ['This product is already added to the order.'],
+                            ]);
+                        }
+                    })
+                    ->after(function (array $data, string $model) {
+                        $this->updateOwnerRecord();
+                        return redirect(request()->header('Referer'));
+                    }),
             ])
             ->actions([
                 Tables\Actions\EditAction::make()->after(function (array $data, string $model) {
                     $this->updateOwnerRecord();
+                    return redirect(request()->header('Referer'));
                 }),
                 Tables\Actions\DeleteAction::make()->after(function (array $data, string $model) {
                     $this->updateOwnerRecord();
+                    return redirect(request()->header('Referer'));
                 }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()->after(function (array $data, string $model) {
+                        $this->updateOwnerRecord();
+                        return redirect(request()->header('Referer'));
+                    }),
                 ]),
             ]);
     }
@@ -119,8 +141,7 @@ class OrderItemsRelationManager extends RelationManager
 
         $order->subtotal = $totalSubtotal;
         $order->total = $totalSubtotal + $order->shipping_cost;
-        
-        $order->save(); 
- 
+
+        $order->save();
     }
 }

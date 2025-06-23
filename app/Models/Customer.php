@@ -27,15 +27,8 @@ class Customer extends Model
         return $this->hasMany(Order::class);
     }
 
-    
-
-    public function billingAddress(): hasOne
+    public function address(): hasOne
     {
-        return $this->hasOne(Address::class)->where('type', 'billing');
-    }
-
-    public function shippingAddress(): hasOne
-    {
-        return $this->hasOne(Address::class)->where('type', 'shipping');
+        return $this->hasOne(Address::class);
     }
 }

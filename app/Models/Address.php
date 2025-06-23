@@ -8,8 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Address extends Model
 {
     protected $fillable = [
-        'customer_id',
-        'type',
+        'customer_id', 
         'phone',
         'address_line_1',
         'address_line_2',
@@ -24,16 +23,6 @@ class Address extends Model
     public function customer()
     {
         return $this->belongsTo(Customer::class);
-    }
-
-    public function billingOrders()
-    {
-        return $this->hasMany(Order::class, 'billing_address_id');
-    }
-
-    public function shippingOrders()
-    {
-        return $this->hasMany(Order::class, 'shipping_address_id');
     }
 
     public function division(): BelongsTo

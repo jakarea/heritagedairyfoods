@@ -32,4 +32,6 @@ class Coupon extends Model
         'discount_amount' => 'decimal:2',
         'min_cart_value' => 'decimal:2',
     ];
+
+    
 }

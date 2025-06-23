@@ -2,21 +2,17 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\CuponResource\Pages;
-use App\Filament\Resources\CuponResource\RelationManagers;
+use App\Filament\Resources\CuponResource\Pages; 
 use App\Models\Category;
 use App\Models\Coupon;
 use App\Models\Customer;
 use App\Models\Product;
-use App\Models\User;
-use Filament\Forms;
+use App\Models\User; 
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Tables\Table; 
+use Illuminate\Support\Facades\Hash; 
 use Filament\Forms\Components\{TextInput, Select, Textarea, FileUpload, Toggle, Section, DateTimePicker};
 
 class CuponResource extends Resource
@@ -39,7 +35,7 @@ class CuponResource extends Resource
                 Section::make('Cupon Details')->schema([
                     TextInput::make('code')
                         ->required()
-                        ->unique(Coupon::class, 'code')
+                        ->unique(Coupon::class, 'code', ignoreRecord: true)
                         ->maxLength(12)
                         ->minLength(4),
 
@@ -189,12 +185,14 @@ class CuponResource extends Resource
                     ->formatStateUsing(fn($state) => ucfirst($state))
                     ->sortable(),
                 Tables\Columns\TextColumn::make('discount_amount')
-                    ->formatStateUsing(fn($state, $record) => $record->type !== 'bogo' ? ($record->type === 'percentage' ? "$state%" : "$state") : '-'),
+                    ->formatStateUsing(fn($state, $record) => $record->type !== 'bogo' ? ($record->type === 'percentage' ? "$state%" : "$state") : '-')
+                    ->placeholder('N/A'),
                 Tables\Columns\TextColumn::make('min_cart_value')
-                    ->money('usd')
+                    ->placeholder('0')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('end_date')
                     ->dateTime()
+                    ->placeholder('N/A')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
@@ -215,8 +213,11 @@ class CuponResource extends Resource
                     ]),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\ViewAction::make(),
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
+                ]),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
