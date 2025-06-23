@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('addresses', function (Blueprint $table) {
             $table->id();
             $table->foreignId('customer_id')->constrained()->onDelete('cascade');
-            $table->enum('type', ['billing', 'shipping', 'both'])->default('both'); 
+            $table->enum('type', ['billing', 'shipping'])->default('billing'); 
             $table->string('phone')->nullable();
             $table->string('email')->nullable();
             $table->string('address_line_1')->nullable();

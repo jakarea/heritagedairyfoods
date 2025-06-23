@@ -56,23 +56,30 @@ class OrderResource extends Resource
 
                             // Populate address fields
                             if ($billingAddress = $customer->billingAddress) {
-                                $set('bill_address_line_1', $billingAddress->address_line_1);
-                                $set('bill_address_line_2', $billingAddress->address_line_2);
-                                $set('bill_country', $billingAddress->country);
-                                $set('bill_division_id', $billingAddress->division?->name);
-                                $set('bill_district_id', $billingAddress->district?->name);
-                                $set('bill_thana_id', $billingAddress->thana?->name);
-                                $set('bill_zip_code', $billingAddress->zip_code);
+                                $billingAddressParts = [
+                                    $billingAddress->address_line_1,
+                                    $billingAddress->address_line_2,
+                                    $billingAddress->country,
+                                    $billingAddress->division?->name,
+                                    $billingAddress->district?->name,
+                                    $billingAddress->thana?->name,
+                                    $billingAddress->zip_code,
+                                ];
+
+                                $set('billing_address', implode(', ', array_filter($billingAddressParts)));
                             }
-                            // Populate address fields
                             if ($shippingAddress = $customer->shippingAddress) {
-                                $set('ship_address_line_1', $shippingAddress->address_line_1);
-                                $set('ship_address_line_2', $shippingAddress->address_line_2);
-                                $set('ship_country', $shippingAddress->country);
-                                $set('ship_division_id', $shippingAddress->division?->name);
-                                $set('ship_district_id', $shippingAddress->district?->name);
-                                $set('ship_thana_id', $shippingAddress->thana?->name);
-                                $set('ship_zip_code', $shippingAddress->zip_code);
+                                $shippingAddressParts = [
+                                    $shippingAddress->address_line_1,
+                                    $shippingAddress->address_line_2,
+                                    $shippingAddress->country,
+                                    $shippingAddress->division?->name,
+                                    $shippingAddress->district?->name,
+                                    $shippingAddress->thana?->name,
+                                    $shippingAddress->zip_code,
+                                ];
+
+                                $set('shipping_address', implode(', ', array_filter($shippingAddressParts)));
                             }
                         }
                     })
@@ -127,25 +134,12 @@ class OrderResource extends Resource
             ])->columns(2),
 
             // billing info
-            Section::make('Billing Details')->schema([
-                TextInput::make('bill_address_line_1')->label('Address Line 1')->nullable(),
-                TextInput::make('bill_address_line_2')->label('Address Line 2')->nullable(),
-                TextInput::make('bill_country')->label('Country')->nullable(),
-                TextInput::make('bill_division_id')->label('Division')->nullable(),
-                TextInput::make('bill_district_id')->label('District')->nullable(),
-                TextInput::make('bill_thana_id')->label('Thana')->nullable(),
-                TextInput::make('bill_zip_code')->label('Zip Code')->nullable(),
-            ])->columns(4),
+            Section::make('Adress Details')->schema([
+                TextInput::make('billing_address')->label('Billing Address')
+                    ->nullable()->columnSpanFull(),
 
-            // shipping info
-            Section::make('Shipping Details')->schema([
-                TextInput::make('ship_address_line_1')->label('Address Line 1')->nullable(),
-                TextInput::make('ship_address_line_2')->label('Address Line 2')->nullable(),
-                TextInput::make('ship_country')->label('Country')->nullable(),
-                TextInput::make('ship_division_id')->label('Division')->nullable(),
-                TextInput::make('ship_district_id')->label('District')->nullable(),
-                TextInput::make('ship_thana_id')->label('Thana')->nullable(),
-                TextInput::make('ship_zip_code')->label('Zip Code')->nullable(),
+                TextInput::make('shipping_address')->label('Shipping Address')
+                    ->nullable()->columnSpanFull(),
             ])->columns(4),
 
             Section::make('Product Selection')->schema([
@@ -187,8 +181,7 @@ class OrderResource extends Resource
                     ->label('Selected Products')
                     ->schema([
                         TextInput::make('name')
-                            ->label('Product Name')
-                            // ->disabled()
+                            ->label('Product Name') 
                             ->required()
                             ->columnSpan(6),
                         TextInput::make('price')
@@ -198,13 +191,13 @@ class OrderResource extends Resource
                             ->prefix('BDT')
                             ->columnSpan(3)
                             ->afterStateUpdated(function (callable $set, callable $get) {
-                                $products = $get('selected_products') ?? [];
+                                $products = $get('../../selected_products') ?? []; 
                                 $subtotal = collect($products)->sum(function ($item) {
                                     return $item['quantity'] * $item['price'];
                                 });
-                                $set('subtotal', $subtotal);
-                                $shippingCost = $get('shipping_cost') ?? 0;
-                                $set('total', $subtotal + $shippingCost);
+                                $set('../../subtotal', $subtotal);
+                                $shippingCost = $get('../../shipping_cost') ?? 0;
+                                $set('../../total', $subtotal + $shippingCost);
                             }),
                         TextInput::make('quantity')
                             ->label('Quantity')
@@ -213,13 +206,13 @@ class OrderResource extends Resource
                             ->required()
                             ->reactive()
                             ->afterStateUpdated(function (callable $set, callable $get) {
-                                $products = $get('selected_products') ?? [];
+                                $products = $get('../../selected_products') ?? [];
                                 $subtotal = collect($products)->sum(function ($item) {
                                     return $item['quantity'] * $item['price'];
                                 });
-                                $set('subtotal', $subtotal);
-                                $shippingCost = $get('shipping_cost') ?? 0;
-                                $set('total', $subtotal + $shippingCost);
+                                $set('../../subtotal', $subtotal);
+                                $shippingCost = $get('../../shipping_cost') ?? 0;
+                                $set('../../total', $subtotal + $shippingCost);
                             })
                             ->columnSpan(3),
                     ])
@@ -242,8 +235,9 @@ class OrderResource extends Resource
                     ->required()
                     ->options([
                         'cod' => 'COD',
-                        'cash' => 'Cash',
                         'card' => 'Card',
+                        'cash' => 'Cash',
+                        'bank_transfer' => 'Bank Transfer',
                     ]),
 
                 TextInput::make('shipping_method')
