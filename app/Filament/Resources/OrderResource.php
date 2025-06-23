@@ -21,6 +21,9 @@ use Filament\Infolists\Components;
 use Illuminate\Support\Facades\Hash;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
+use Filament\Tables\Actions\Action;
+use App\Services\SteadfastService;
+use App\Services\PathaoService;
 use Filament\Tables\Actions\{EditAction, DeleteAction, ViewAction, ForceDeleteAction, RestoreAction};
 use Filament\Forms\Components\{TextInput, DateTimePicker, Select, Textarea, FileUpload, Grid, Toggle, Repeater, RichEditor, Section, Hidden};
 
@@ -68,7 +71,7 @@ class OrderResource extends Resource
 
                                 $set('billing_address', implode(', ', array_filter($addressParts)));
                                 $set('shipping_address', implode(', ', array_filter($addressParts)));
-                            } 
+                            }
                         }
                     })
                     ->createOptionForm([
@@ -228,8 +231,12 @@ class OrderResource extends Resource
                         'bank_transfer' => 'Bank Transfer',
                     ]),
 
-                TextInput::make('shipping_method')
-                    ->nullable(),
+                Select::make('shipping_method')
+                    ->nullable()
+                    ->options([
+                        '0' => 'Home Delivery',
+                        '1' => 'Point Pickup',
+                    ]),
 
                 TextInput::make('shipping_cost')
                     ->label('Shipping Cost')
@@ -274,6 +281,8 @@ class OrderResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('order_number')->searchable()->label('Order ID'),
+                TextColumn::make('consignment_id')->searchable()->label('Consigment ID'),
+                TextColumn::make('tracking_code')->searchable()->label('Tracking ID'),
                 TextColumn::make('customer.name')->searchable()->sortable()->label('Customer Name'),
                 TextColumn::make('orderItems_count')
                     ->label('Total Items')
@@ -290,15 +299,82 @@ class OrderResource extends Resource
                     })
                     ->sortable()
                     ->label('Status'),
-                TextColumn::make('created_at')->label('Order at')->dateTime()->sortable(),
+                TextColumn::make('courier_status')->sortable(),
+                // TextColumn::make('created_at')->label('Order at')->dateTime()->sortable(),
             ])
             ->actions([
+
+                // Send to Courier Button (visible when status is 'pending')
+                Action::make('sendToSteadfastCourier')
+                    ->label('Steadfast')
+                    ->icon('heroicon-o-truck')
+                    ->color('success')
+                    // ->requiresConfirmation()
+                    ->visible(fn($record) => $record->status === 'pending')
+                    ->action(function ($record) {
+                        $service = new SteadfastService();
+                        try {
+                            $response = $service->createOrder($record->id);
+                            \Filament\Notifications\Notification::make()
+                                ->title($response['message'])
+                                ->success()
+                                ->send();
+                        } catch (\Exception $e) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Failed to send to courier')
+                                ->body($e->getMessage())
+                                ->danger()
+                                ->send();
+                        }
+                    }),
+
+                Action::make('sendToPathaoCourier')
+                    ->label('Pathao')
+                    ->icon('heroicon-o-truck')
+                    ->color('danger')
+                    // ->requiresConfirmation()
+                    ->visible(fn($record) => $record->status === 'pending')
+                    ->action(function ($record) {
+                        $service = new PathaoService();
+                        try {
+                            $response = $service->createOrder($record->id);
+                            \Filament\Notifications\Notification::make()
+                                ->title($response['message'])
+                                ->success()
+                                ->send();
+                        } catch (\Exception $e) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Failed to send to courier')
+                                ->body($e->getMessage())
+                                ->danger()
+                                ->send();
+                        }
+                    }),
+
+                // Track Order Button (visible when status is 'processing')
+                Action::make('trackOrder')
+                    ->label('Track Order')
+                    ->icon('heroicon-o-magnifying-glass')
+                    ->color('info')
+                    ->visible(fn($record) => $record->status === 'processing' && $record->tracking_code)
+                    ->action(function ($record) {
+                        $service = new SteadfastService();
+                        try {
+                            $response = $service->trackOrder($record->tracking_code, $record->id);
+                            \Filament\Notifications\Notification::make()
+                                ->title($response['message'])
+                                ->success()
+                                ->send();
+                        } catch (\Exception $e) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Failed to track the courier')
+                                ->body($e->getMessage())
+                                ->danger()
+                                ->send();
+                        }
+                    }),
+
                 ActionGroup::make([
-                    // Action::make('view-order-details')
-                    //     ->label('Order Details')
-                    //     ->icon('heroicon-o-currency-dollar')
-                    //     ->color('info')
-                    //     ->url(fn($record) => url('admin/orders/details', ['id' => $record->id])),
                     ViewAction::make(),
                     EditAction::make(),
                     DeleteAction::make(),
@@ -383,8 +459,10 @@ class OrderResource extends Resource
                 Components\Section::make('Order Tracking')
                     ->schema([
 
-                        Components\TextEntry::make('tracking_number')->label('Tracking Number')->placeholder('N/A'),
-                        Components\TextEntry::make('tracking_carrier')->label('Tracking Carrier')->placeholder('N/A'),
+                        Components\TextEntry::make('consignment_id')->label('Consignment ID')->placeholder('N/A'),
+                        Components\TextEntry::make('invoice')->label('Invoice ID')->placeholder('N/A'),
+                        Components\TextEntry::make('tracking_code')->label('Tracking Code')->placeholder('N/A'),
+                        Components\TextEntry::make('courier_status')->label('Courier Status')->placeholder('N/A'),
 
                         Components\TextEntry::make('created_at')
                             ->label('Order Date')

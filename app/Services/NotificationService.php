@@ -46,10 +46,10 @@ class NotificationService
         ]);
 
         // Log the API response
-        Log::info('SMS API Response', [
-            'status' => $response->status(),
-            'body' => $response->body(),
-        ]);
+        // Log::info('SMS API Response', [
+        //     'status' => $response->status(),
+        //     'body' => $response->body(),
+        // ]);
     }
 
     public function sendEmail($subject, $order, $orderItems)
