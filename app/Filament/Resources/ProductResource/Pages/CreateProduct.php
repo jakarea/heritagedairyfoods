@@ -64,6 +64,9 @@ class CreateProduct extends CreateRecord
 
             // Variations
             if (!empty($data['product_variations'])) {
+
+                 $createdVariations = [];
+
                 foreach ($data['product_variations'] as $index => $variationData) {
                     $variation = ProductVariation::create([
                         'product_id' => $product->id,
@@ -77,23 +80,25 @@ class CreateProduct extends CreateRecord
                         'is_default' => $index === 0,
                     ]);
 
+                    $createdVariations[] = $variation;
+
                     // Variation attributes
                     $variationAttributes = [];
 
                     if (!empty($data['product_attributes'])) {
                         $variationAttributes = [];
-                        
+
                         // Iterate through each variation
-                        foreach ($data['variations'] as $variation) {
+                        foreach ($createdVariations as $variation) {
                             $attributeMap = []; // To store unique attribute-value pairs for this variation
-                            
+
                             // Process each attribute set
                             foreach ($data['product_attributes'] as $attributeSet) {
                                 // Ensure only one value is selected per attribute for this variation
                                 if (!empty($attributeSet['product_attribute_values'])) {
                                     // Take the first value or ensure a single value is selected
                                     $value = $attributeSet['product_attribute_values'][0];
-                                    
+
                                     // Store the attribute-value pair
                                     $attributeMap[$attributeSet['product_attribute_id']] = [
                                         'product_variation_id' => $variation->id,
@@ -104,7 +109,7 @@ class CreateProduct extends CreateRecord
                                     ];
                                 }
                             }
-                            
+
                             // Add the unique attribute-value pairs for this variation to the collection
                             $variationAttributes = array_merge($variationAttributes, array_values($attributeMap));
                         }
@@ -125,7 +130,7 @@ class CreateProduct extends CreateRecord
                     }
                 }
             }
-        }); 
+        });
 
     }
 }

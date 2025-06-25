@@ -310,7 +310,7 @@ class OrderResource extends Resource
                     ->icon('heroicon-o-truck')
                     ->color('success')
                     // ->requiresConfirmation()
-                    ->visible(fn($record) => $record->status === 'pending')
+                    ->visible(fn($record) => !$record->consignment_id)
                     ->action(function ($record) {
                         $service = new SteadfastService();
                         try {
@@ -333,7 +333,7 @@ class OrderResource extends Resource
                     ->icon('heroicon-o-truck')
                     ->color('danger')
                     // ->requiresConfirmation()
-                    ->visible(fn($record) => $record->status === 'pending')
+                    ->visible(fn($record) => !$record->consignment_id)
                     ->action(function ($record) {
                         $service = new PathaoService();
                         try {
@@ -356,7 +356,7 @@ class OrderResource extends Resource
                     ->label('Track Order')
                     ->icon('heroicon-o-magnifying-glass')
                     ->color('info')
-                    ->visible(fn($record) => $record->status === 'processing' && $record->tracking_code)
+                    ->visible(fn($record) => $record->consignment_id)
                     ->action(function ($record) {
                         $service = new SteadfastService();
                         try {

@@ -19,7 +19,7 @@ use App\Models\ProductAttributeValue;
 use Filament\Forms\Components\Actions;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Notifications\Notification;
-use Filament\Forms\Components\Actions\Action; 
+use Filament\Forms\Components\Actions\Action;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Tables\Actions\{EditAction, DeleteAction, ViewAction, ForceDeleteAction, RestoreAction};
 use Filament\Forms\Components\{TextInput, Select, Textarea, FileUpload, Grid, Toggle, Repeater, RichEditor, Section, TagsInput};
@@ -207,7 +207,7 @@ class ProductResource extends Resource
                                     ->preserveFilenames()
                             ])
                             ->columnSpan(1),
-                
+
                         Section::make('Gallery Images')
                             ->label('Gallery Images')
                             ->schema([
@@ -453,7 +453,7 @@ class ProductResource extends Resource
                                                 'flat' => 'Flat',
                                                 'percentage' => 'Percentage',
                                             ])
-                                            ->required()
+                                            ->nullable()
                                             ->default('flat'),
                                         TextInput::make('stock')->numeric()->required(),
                                         TextInput::make('weight')->numeric(),
